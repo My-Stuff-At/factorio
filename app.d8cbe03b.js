@@ -173,3 +173,31 @@ for (const a of document.querySelectorAll('a.anchor')) {
     });
   });
 }
+
+// Asteroid type switcher. Unlike the speed table there is no continuous knob
+// here, so both variants are pre-rendered and this only toggles which is shown.
+// That keeps the scriptless page complete instead of leaving a dead control.
+const kindStrip = document.getElementById('kind-tabs');
+if (kindStrip) {
+  const buttons = [...kindStrip.querySelectorAll('[role="tab"]')];
+  const panels = buttons.map(b => document.getElementById(`kind-${b.dataset.kind}`));
+  const select = i => {
+    buttons.forEach((b, n) => {
+      b.setAttribute('aria-selected', String(n === i));
+      b.tabIndex = n === i ? 0 : -1;
+    });
+    panels.forEach((p, n) => { if (p) p.hidden = n !== i; });
+  };
+  buttons.forEach((b, i) => {
+    b.addEventListener('click', () => select(i));
+    b.addEventListener('keydown', e => {
+      const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (!d) return;
+      e.preventDefault();
+      const n = (i + d + buttons.length) % buttons.length;
+      select(n);
+      buttons[n].focus();
+    });
+  });
+  select(0);
+}
