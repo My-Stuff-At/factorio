@@ -209,3 +209,25 @@ footer { margin-top:3.5rem; padding-top:1.25rem; border-top:1px solid var(--rule
   vertical-align:middle; margin-right:.3rem; border:1px solid var(--rule); }
 .legend .sw.ok { background:rgb(var(--cell) / var(--tint-flag)); }
 .legend .sw.hack { background:rgb(var(--hack) / var(--tint-flag)); }
+
+/* Wiki item reference: icon, optionally a label, linking to wiki.factorio.com.
+   The icon is sized in `cap` units - the font's CAP HEIGHT, not its line height
+   and not an em - so it matches the height of the adjacent capitals. At roughly
+   0.7em it sits inside the font's ascent, so it cannot grow the line box or
+   change the spacing between lines. `em` is the fallback where cap is missing
+   (Safari before 16.4).
+
+   Plain inline, NOT inline-flex. A flex container has a height of its own, and
+   `align-items:center` pushes the icon below the baseline: that measured 0.61px
+   of extra height on every row. An inline image on the baseline occupies 1cap
+   ABOVE it, which is inside the font's ascent, so the line box cannot grow. */
+.iref { text-decoration:none; color:inherit; white-space:nowrap; }
+.iref img {
+  height:.72em; width:.72em;
+  height:1cap; width:1cap;
+  vertical-align:baseline; margin-right:.35em;
+}
+.iref:hover { text-decoration:underline; text-decoration-color:rgb(var(--cell)); }
+.iref:focus-visible { outline:2px solid rgb(var(--cell)); outline-offset:2px; border-radius:3px; }
+/* The row header sets weight and alignment; the link inherits both. */
+th .iref { font-weight:inherit; }
