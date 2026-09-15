@@ -1,183 +1,177 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
 <meta charset="utf-8">
+<!-- Runs before first paint, so the controls are laid out in the very first
+     frame instead of appearing afterwards and shoving the page down. The
+     controls are VISIBLE by default and hidden only under .no-js, which is the
+     inverse of the obvious arrangement and the reason there is no layout jump.
+     Inline and tiny on purpose: an external script could not beat the paint. -->
+<script>document.documentElement.classList.remove('no-js')</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Space platform cruise speed — Factorio Space Age</title>
-<meta name="description" content="Cruise speed in km/s by hull width and thruster count, computed from the game's own acceleration expression and calibrated against measured ships.">
-<style>
-  :root {
-    --bg: #fbfaf8; --fg: #1a1815; --muted: #6b6560; --rule: #e3ded7;
-    --card: #ffffff; --accent: #b4530a; --ok: #2f6b3a; --warn: #9a3412;
-    --cell-lo: 250 248 245; --cell-hi: 180 83 10;
-    color-scheme: light dark;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #171614; --fg: #ece8e1; --muted: #9b948c; --rule: #322e29;
-      --card: #201e1b; --accent: #e8913f; --ok: #6ee7a0; --warn: #fca5a5;
-      --cell-lo: 32 30 27; --cell-hi: 232 145 63;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #171614; --fg: #ece8e1; --muted: #9b948c; --rule: #322e29;
-    --card: #201e1b; --accent: #e8913f; --ok: #6ee7a0; --warn: #fca5a5;
-    --cell-lo: 32 30 27; --cell-hi: 232 145 63;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; padding: 2.5rem 1.25rem 5rem; background: var(--bg); color: var(--fg);
-    font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  }
-  main { max-width: 56rem; margin: 0 auto; }
-  h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 .4rem; letter-spacing: -.02em; }
-  h2 { font-size: 1.1rem; margin: 2.75rem 0 .75rem; letter-spacing: -.01em; }
-  .sub { color: var(--muted); margin: 0 0 2rem; }
-  .wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--card); }
-  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
-  caption { text-align: left; padding: .9rem 1rem .1rem; color: var(--muted); font-size: .875rem; }
-  th, td { padding: .5rem .85rem; text-align: right; border-bottom: 1px solid var(--rule); white-space: nowrap; }
-  thead th { font-weight: 600; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
-  tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
-  th[scope="row"] { text-align: left; font-weight: 600; }
-  #grid td { background: rgb(var(--cell-lo) / 1); position: relative; }
-  #grid td::before {
-    content: ""; position: absolute; inset: 0; background: rgb(var(--cell-hi));
-    opacity: calc(var(--t) * 0.45); pointer-events: none;
-  }
-  #grid td { isolation: isolate; }
-  #grid td span { position: relative; }
-  .note { color: var(--muted); font-size: .9rem; }
-  code { font: .875em ui-monospace, SFMono-Regular, Menlo, monospace; background: color-mix(in srgb, var(--fg) 8%, transparent); padding: .1em .35em; border-radius: 4px; }
-  pre { overflow-x: auto; background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: 1rem; font: .82rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
-  .ok { color: var(--ok); } .warn { color: var(--warn); }
-  footer { margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .85rem; }
-  ul { padding-left: 1.1rem; } li { margin: .35rem 0; }
-</style>
+<meta name="description" content="Cruise speed in km/s by hull width and thruster count, solved from the game's acceleration expression and checked against measured platforms.">
+<link rel="stylesheet" href="style.c5a331c6.css">
 </head>
 <body>
-<main>
-  <h1>Space platform cruise speed</h1>
-  <p class="sub">Steady-state speed in km/s by hull width and thruster count, for Factorio 2.1.17 Space Age.</p>
+<div class="layout">
+  <nav aria-label="Contents">
+    <h2>Contents</h2>
+    <ol>
+          <li><a class="t1" href="#space-platform-cruise-speed">Space platform cruise speed</a>
+            <ol>
+              <li><a href="#cruise-speed">The table</a></li>
+              <li><a href="#reading-it">Reading it</a></li>
+              <li><a href="#two-plateaus">Why speed comes in two plateaus</a></li>
+              <li><a href="#hull-size">Hull size barely matters</a></li>
+              <li><a href="#derivation">Where the numbers come from</a></li>
+              <li><a href="#calibration">Calibration and self-check</a></li>
+              <li><a href="#caveats">Caveats</a></li>
+            </ol>
+          </li>
+    </ol>
+  </nav>
 
-  <div class="wrap">
-    <table id="grid">
-      <caption>legendary thrusters, platform weight 200,000. Values are <strong>v0</strong>.</caption>
-      <thead>
-        <tr><th scope="col">Width</th><th scope="col">1 thruster</th><th scope="col">2 thrusters</th><th scope="col">3 thrusters</th><th scope="col">4 thrusters</th></tr>
-      </thead>
+  <main>
+
+    <h1 id="space-platform-cruise-speed">Space platform cruise speed<a class="anchor" href="#space-platform-cruise-speed" aria-label="Copy link to Space platform cruise speed">#</a></h1>
+    <p class="sub">Steady-state speed in km/s by hull width and thruster count, for Factorio 2.1.17 Space Age.</p>
+<span class="alias" id="grid"></span>
+    <h2 id="cruise-speed">The table<a class="anchor" href="#cruise-speed" aria-label="Copy link to The table">#</a></h2>
+      <div class="controls" id="controls">
+      <div class="tabs" id="quality-tabs" role="tablist" aria-label="Thruster quality">
+        <button type="button" role="tab" data-quality="normal" aria-selected="true" tabindex="0">Normal</button>
+        <button type="button" role="tab" data-quality="legendary" aria-selected="false" tabindex="-1">Legendary</button>
+      </div>
+      <div class="tabs" id="phase-tabs" role="tablist" aria-label="Leg phase">
+        <button type="button" role="tab" data-phase="baseline" aria-selected="true" tabindex="0">Baseline</button>
+        <button type="button" role="tab" data-phase="low" aria-selected="false" tabindex="-1">−10 km/s</button>
+        <button type="button" role="tab" data-phase="high" aria-selected="false" tabindex="-1">+10 km/s</button>
+      </div>
+        <div class="fill">
+          <label for="fill">Thruster fill</label>
+          <button type="button" class="step" id="fill-down" aria-controls="fill" aria-label="Decrease fill by one percent"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+          <input type="range" id="fill" min="0" max="100" step="1" value="43" list="fill-marks">
+          <button type="button" class="step" id="fill-up" aria-controls="fill" aria-label="Increase fill by one percent"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+          <datalist id="fill-marks">
+            <option value="10" label="10"></option>
+            <option value="43" label="43"></option>
+            <option value="80" label="80"></option>
+          </datalist>
+          <output id="fill-value" for="fill">43%</output>
+        </div>
+      </div>
+      <p class="legend">
+        <span><i class="neat"></i>fits side by side</span>
+        <span><i class="hack"></i>needs thrusters stacked along the hull</span>
+        <span><i class="stall"></i>&mdash; thrust below the platform&rsquo;s static drag, so it cannot move</span>
+      </p>
+      <div class="wrap">
+        <table class="grid" id="speed-grid">
+          <caption id="grid-caption">Normal thrusters, 800-tile hull, 43% fill. Baseline.</caption>
+          <thead><tr><th scope="col">Width</th><th scope="col">1 thruster</th><th scope="col">2 thrusters</th><th scope="col">3 thrusters</th><th scope="col">4 thrusters</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">8</th><td style="--t:0.292">170</td><td class="hacky edge-l edge-b" style="--t:0.589">262</td><td class="hacky" style="--t:0.813">331</td><td class="hacky" style="--t:1.000">389</td></tr>
+            <tr><th scope="row">10</th><td style="--t:0.225">150</td><td style="--t:0.490">232</td><td class="hacky edge-l" style="--t:0.690">294</td><td class="hacky" style="--t:0.858">345</td></tr>
+            <tr><th scope="row">12</th><td style="--t:0.176">135</td><td style="--t:0.418">209</td><td class="hacky edge-l edge-b" style="--t:0.600">266</td><td class="hacky" style="--t:0.753">313</td></tr>
+            <tr><th scope="row">14</th><td style="--t:0.138">123</td><td style="--t:0.361">192</td><td style="--t:0.530">244</td><td class="hacky edge-l" style="--t:0.671">288</td></tr>
+            <tr><th scope="row">16</th><td style="--t:0.107">113</td><td style="--t:0.316">178</td><td style="--t:0.473">226</td><td class="hacky edge-l edge-b" style="--t:0.605">267</td></tr>
+            <tr><th scope="row">20</th><td style="--t:0.061">99</td><td style="--t:0.246">156</td><td style="--t:0.387">200</td><td style="--t:0.505">236</td></tr>
+            <tr><th scope="row">24</th><td style="--t:0.026">88</td><td style="--t:0.195">141</td><td style="--t:0.323">180</td><td style="--t:0.431">213</td></tr>
+            <tr><th scope="row">28</th><td style="--t:0.000">80</td><td style="--t:0.156">128</td><td style="--t:0.274">165</td><td style="--t:0.374">196</td></tr>
+          </tbody>
+          <tfoot>
+            <tr id="fuel-row"><th scope="row">Fuel &amp; oxidizer, units/s each</th><td>59.7</td><td>119.5</td><td>179.2</td><td>239.0</td></tr>
+          </tfoot>
+        </table>
+      </div>
+
+    <h2 id="reading-it">Reading it<a class="anchor" href="#reading-it" aria-label="Copy link to Reading it">#</a></h2>
+    <ul>
+      <li><strong>Narrow beats wide.</strong> Drag scales with width, thrust does not, so halving the width is worth roughly 1.4× the speed at the same thruster count.</li>
+      <li><strong>Thrusters stack in series.</strong> There is no top speed — each adds thrust without adding drag, so long-and-narrow is the fast shape.</li>
+      <li><strong>Width limits how many thrusters fit abreast.</strong> One is 4 tiles wide and needs a fifth for its fuel and oxidizer lines, so N of them want a hull at least 5N−1 wide. The tinted cells are below that: reaching them means stacking thrusters along the ship, past the exhaust dead zone, which is a deliberate build rather than a default one.</li>
+      <li><strong>A platform never holds the baseline figure.</strong> It settles on one of two speeds 20 km/s apart, ±10 either side, according to which body is pulling on it — see below.</li>
+      <li><strong>Outside 10–80% fill, nothing changes.</strong> The thruster's performance curve is defined by just those two endpoints and holds them outside that range, so 3% fill behaves as 10% and 95% as 80%. Empty is the exception rather than a very low setting: a thruster with no fluid in it produces nothing.</li>
+    </ul>
+
+    <h2 id="two-plateaus">Why speed comes in two plateaus<a class="anchor" href="#two-plateaus" aria-label="Copy link to Why speed comes in two plateaus">#</a></h2>
+    <p>Gravity. Every planet carries <code>gravity_pull</code> of 0.1667… tiles per tick, and 60 ticks to the second makes that exactly 10 km/s. It acts toward whichever end of the leg you are nearer, so the origin drags for the first half and the destination pulls for the second:</p>
+    <table class="legs">
+      <thead><tr><th scope="col">Leg</th><th scope="col">Before midpoint</th><th scope="col">After midpoint</th><th scope="col">Net</th></tr></thead>
       <tbody>
-      <tr>
-        <th scope="row">8</th>
-        <td style="--t:0.308">298</td>
-        <td style="--t:0.596">440</td>
-        <td style="--t:0.815">547</td>
-        <td style="--t:1.000">638</td>
-      </tr>
-      <tr>
-        <th scope="row">10</th>
-        <td style="--t:0.238">264</td>
-        <td style="--t:0.495">390</td>
-        <td style="--t:0.692">487</td>
-        <td style="--t:0.857">568</td>
-      </tr>
-      <tr>
-        <th scope="row">12</th>
-        <td style="--t:0.186">239</td>
-        <td style="--t:0.421">354</td>
-        <td style="--t:0.600">442</td>
-        <td style="--t:0.751">516</td>
-      </tr>
-      <tr>
-        <th scope="row">14</th>
-        <td style="--t:0.146">219</td>
-        <td style="--t:0.363">326</td>
-        <td style="--t:0.529">407</td>
-        <td style="--t:0.669">475</td>
-      </tr>
-      <tr>
-        <th scope="row">16</th>
-        <td style="--t:0.114">203</td>
-        <td style="--t:0.317">303</td>
-        <td style="--t:0.472">379</td>
-        <td style="--t:0.602">443</td>
-      </tr>
-      <tr>
-        <th scope="row">20</th>
-        <td style="--t:0.064">179</td>
-        <td style="--t:0.246">268</td>
-        <td style="--t:0.384">336</td>
-        <td style="--t:0.501">393</td>
-      </tr>
-      <tr>
-        <th scope="row">24</th>
-        <td style="--t:0.028">161</td>
-        <td style="--t:0.194">242</td>
-        <td style="--t:0.320">304</td>
-        <td style="--t:0.426">356</td>
-      </tr>
-      <tr>
-        <th scope="row">28</th>
-        <td style="--t:0.000">147</td>
-        <td style="--t:0.153">222</td>
-        <td style="--t:0.270">280</td>
-        <td style="--t:0.368">328</td>
-      </tr>
+        <tr><th scope="row">Planet to planet</th><td>−10 km/s</td><td>+10 km/s</td><td>switches at the midpoint</td></tr>
+        <tr><th scope="row">Planet out to the edge</th><td>−10 km/s</td><td>−10 km/s</td><td>−10 the whole way</td></tr>
+        <tr><th scope="row">Edge back to a planet</th><td>+10 km/s</td><td>+10 km/s</td><td>+10 the whole way</td></tr>
       </tbody>
     </table>
-  </div>
+    <p>The solar system edge and the shattered planet carry a <em>negative</em> <code>gravity_pull</code>, so they push rather than attract — which is the whole reason their legs have no changeover. Outbound, the planet behind drags and the edge ahead pushes back, and both slow you. Returning, the edge pushes you away and the planet ahead pulls you in, and both help. Nothing in the rule above is special-cased for them; the sign does it.</p>
+    <p>Thruster fill has nothing to do with it; it is identical on both plateaus. The clearest demonstration is a platform with no fuel at all, which has no thrust to confuse the picture: it reads exactly &minus;10.00 km/s and drifts back the way it came. A platform that runs out of propellant does not stop — it falls toward the nearest planet.</p>
 
-  <h2>Reading it</h2>
-  <ul>
-    <li><strong>Narrow beats wide.</strong> Drag scales with width, thrust does not — halving the width is worth roughly 1.4× the speed at the same thruster count.</li>
-    <li><strong>Thrusters stack in series.</strong> There is no top speed; adding thrusters adds thrust without adding drag, so long-and-narrow is the fast shape.</li>
-    <li><strong>These are v0.</strong> A leg runs about 10 km/s below this before its midpoint and 10 above after, so a ship reads as two plateaus 20 apart.</li>
-    <li><strong>Weight is <code>200 × tiles + 40,000</code></strong>, and machines are massless — only foundation counts. The grid fixes weight at 200,000; a heavier hull is proportionally slower to accelerate but reaches the same cruise.</li>
-  </ul>
+    <h2 id="hull-size">Hull size barely matters<a class="anchor" href="#hull-size" aria-label="Copy link to Hull size barely matters">#</a></h2>
+    <p class="note">Hull size is measured in <strong>foundation tiles</strong>; weight follows from it, and machines and cargo are massless:</p>
+    <div class="eq"><math display="block"><mrow><mi>m</mi><mo>=</mo><mn>200</mn><mo>&#x2062;</mo><mi>tiles</mi><mo>+</mo><mn>40000</mn></mrow></math></div>
+    <p class="note">Weight reaches cruise speed only through the <code>1 + m/10⁷</code> term, so it barely matters — it is <em>acceleration</em> that is inversely proportional to it. Eight times the hull costs 5.5% of cruise:</p>
+    <div class="wrap">
+      <table>
+        <caption>14 wide, 3 legendary thrusters</caption>
+        <thead><tr><th scope="col">Hull tiles</th><th scope="col">Weight</th><th scope="col">Cruise km/s</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">200</th><td>80,000</td><td>410</td></tr>
+          <tr><th scope="row">400</th><td>120,000</td><td>409</td></tr>
+          <tr><th scope="row">800</th><td>200,000</td><td>408</td></tr>
+          <tr><th scope="row">1,600</th><td>360,000</td><td>404</td></tr>
+          <tr><th scope="row">3,200</th><td>680,000</td><td>397</td></tr>
+          <tr><th scope="row">6,400</th><td>1,320,000</td><td>385</td></tr>
+        </tbody>
+      </table>
+    </div>
+<span class="alias" id="formula"></span>
+    <h2 id="derivation">Where the numbers come from<a class="anchor" href="#derivation" aria-label="Copy link to Where the numbers come from">#</a></h2>
+    <p class="note">Cruise is where thrust balances drag — the acceleration expression set to zero, for <em>N</em> thrusters of thrust <em>T</em>, hull width <em>w</em> and weight <em>m</em>:</p>
+    <div class="eq"><math display="block"><mrow><mfrac><mrow><mi>N</mi><mo>&#x2062;</mo><mi>T</mi></mrow><mrow><mn>1</mn><mo>+</mo><mfrac><mi>m</mi><msup><mn>10</mn><mn>7</mn></msup></mfrac></mrow></mfrac><mo>=</mo><mrow><mrow><mo>(</mo><mrow><mn>1500</mn><mo>&#x2062;</mo><msup><mi>v</mi><mn>2</mn></msup><mo>+</mo><mn>1500</mn><mo>&#x2062;</mo><mi>v</mi></mrow><mo>)</mo></mrow><mo>&#x22C5;</mo><mfrac><mi>w</mi><mn>2</mn></mfrac><mo>+</mo><mn>10000</mn></mrow></mrow></math></div>
+    <p class="note">Thrust per thruster is not exposed by the API. It was measured across platform classes at one throttle setpoint, and the page re-predicts each measured platform from the resulting constant — the build fails if any drifts over 1%.</p>
 
-  <h2>Where the numbers come from</h2>
-  <p class="note">Cruise is the speed at which thrust balances drag, solved from the game's own acceleration expression:</p>
-  <pre>(thrust / (1 + weight / 10000000) - ((1500 * speed * speed + 1500 * abs(speed)) * (width * 0.5) + 10000) * sign(speed)) / weight / 60</pre>
-  <p class="note">Thrust per thruster is not exposed by the API. It was measured across ship classes at the fleet's fill setpoint, and the page recomputes each measured ship from the resulting constant as a self-check — the build fails if any prediction drifts more than 1%.</p>
+    <h2 id="calibration">Calibration and self-check<a class="anchor" href="#calibration" aria-label="Copy link to Calibration and self-check">#</a></h2>
+    <div class="wrap">
+      <table>
+        <thead><tr>
+          <th scope="col">Width</th><th scope="col">Thrusters</th><th scope="col">Hull tiles</th>
+          <th scope="col">Measured baseline</th><th scope="col">Predicted</th><th scope="col">Error</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td>16</td><td>3 normal</td><td>1,616</td>
+            <td>224.8</td><td>224.4</td>
+            <td class="ok">-0.20%</td>
+          </tr>
+          <tr>
+            <td>24</td><td>5 normal</td><td>3,476</td>
+            <td>235.2</td><td>235.7</td>
+            <td class="ok">+0.19%</td>
+          </tr>
+          <tr>
+            <td>10</td><td>2 legendary</td><td>640</td>
+            <td>391.0</td><td>391.6</td>
+            <td class="ok">+0.14%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-  <div class="wrap">
-    <table>
-      <caption>Calibration and self-check</caption>
-      <thead><tr>
-        <th scope="col">Width</th><th scope="col">Thrusters</th>
-        <th scope="col">Weight</th><th scope="col">Measured v0</th><th scope="col">Predicted</th><th scope="col">Error</th>
-      </tr></thead>
-      <tbody>
-      <tr>
-        <td>16</td><td>3 normal</td>
-        <td>363,200</td><td>224.8</td><td>224.4</td>
-        <td class="ok">-0.20%</td>
-      </tr>
-      <tr>
-        <td>24</td><td>5 normal</td>
-        <td>735,200</td><td>235.2</td><td>235.7</td>
-        <td class="ok">+0.19%</td>
-      </tr>
-      <tr>
-        <td>10</td><td>2 legendary</td>
-        <td>168,000</td><td>391.0</td><td>391.0</td>
-        <td class="ok">+0.00%</td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
+    <h2 id="caveats">Caveats<a class="anchor" href="#caveats" aria-label="Copy link to Caveats">#</a></h2>
+    <ul>
+      <li>Thrust per thruster was measured at 43% fill. The slider rescales it using the thruster performance curve.</li>
+      <li>Validated against a 10-wide hull with 2 legendary thrusters at weight 168,000: predicted baseline 391 against measured plateaus of 381.3 and 401.</li>
+      <li><code>platform.speed</code> is tiles/tick; km/s = <code>speed × 60</code>, where 60 is the design UPS and 1 tile = 1 km.</li>
+    </ul>
 
-  <h2>Caveats</h2>
-  <ul>
-    <li>Measured at the fleet's fill setpoint (P=43, thruster fluid ~426-451), NOT physical maxima. Values are v0: subtract 10 before a leg's midpoint, add 10 after.</li>
-    <li>Validated against a 10-wide hull with 2 legendary thrusters at weight 168,000: predicted v0 391 against measured plateaus of 381.3 and 401.</li>
-    <li><code>platform.speed</code> is tiles/tick; km/s = <code>speed × 60</code>, where 60 is the design UPS and 1 tile = 1 km.</li>
-  </ul>
-
-  <footer>
-    Generated from measurements taken in a live game, Factorio 2.1.17 Space Age.
-    Every figure is recomputed at build time from the acceleration expression, not transcribed.
-  </footer>
-</main>
+    <footer>Generated from measurements taken in a live game, Factorio 2.1.17 Space Age.
+    Every figure is recomputed at build time from the acceleration expression.
+    Icons by <a href="https://lucide.dev">Lucide</a>, <a href="CREDITS.md">ISC licensed</a>.</footer>
+  </main>
+</div>
+<script type="application/json" id="model">{"widths":[8,10,12,14,16,20,24,28],"thrusterCounts":[1,2,3,4],"weight":200000,"thrustPerThruster":{"normal":76943,"legendary":192357.5},"qualityScale":{"_note":"Quality multiplies a thruster wholesale: 1 + 0.3 x level, and legendary is level 5. It scales thrust AND fluid usage by the same factor, so efficiency is unchanged. Measured independently the two thrust constants came out 2.4936 apart, which is measurement error; the exact law is used instead so fuel figures land on whole numbers.","normal":1,"legendary":2.5},"calibrationFill":0.43,"performance":{"min":{"fill":0.1,"fluid_usage":0.1,"effectivity":1},"max":{"fill":0.8,"fluid_usage":2,"effectivity":0.51}},"offset":10,"tiles":800,"qualityLabels":{"normal":"Normal","legendary":"Legendary"},"phaseDelta":{"baseline":0,"low":-10,"high":10},"phaseLabels":{"baseline":"Baseline","low":"−10 km/s","high":"+10 km/s"}}</script>
+<script type="module" src="app.3db4cbbe.js"></script>
 </body>
 </html>

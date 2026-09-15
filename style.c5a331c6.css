@@ -1,0 +1,192 @@
+:root {
+  --bg:#fbfaf8; --fg:#1a1815; --muted:#6b6560; --rule:#e3ded7; --card:#fff;
+  --link:#9a4508; --ok:#2f6b3a; --warn:#9a3412; --cell:180 83 10; --hack:178 45 38;
+    --tint-heat:.20; --tint-flag:.09; --tint-rule:.45;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg:#171614; --fg:#ece8e1; --muted:#9b948c; --rule:#322e29; --card:#201e1b;
+  --link:#e8913f; --ok:#6ee7a0; --warn:#fca5a5; --cell:232 145 63; --hack:224 96 84;
+    --tint-heat:.24; --tint-flag:.11; --tint-rule:.5;
+} }
+:root[data-theme="dark"] {
+  --bg:#171614; --fg:#ece8e1; --muted:#9b948c; --rule:#322e29; --card:#201e1b;
+  --link:#e8913f; --ok:#6ee7a0; --warn:#fca5a5; --cell:232 145 63; --hack:224 96 84;
+    --tint-heat:.24; --tint-flag:.11; --tint-rule:.5;
+}
+
+/* ---------------------------------------------------------------- TABLE COLOR
+   Rules for every table on this site:
+     1. A cell background is always a TINT - a translucent wash of a hue over
+        the card color. Never a solid fill, so text keeps full contrast.
+     2. Text is never recolored to encode a value. Only the background is.
+     3. Peak tint alpha is capped by --tint-heat. Anything stronger starts to
+        fight the text, which is what the numbers are for.
+     4. Region washes are flatter than heat shading, so a flagged cell reads as
+        flagged even at the cold end of the scale.
+     5. Borders drawn from a hue use --tint-rule, stronger than any fill, since
+        a 1-2px line needs more alpha to register than a whole cell does. */
+
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+a { color:var(--link); }
+.layout { max-width:70rem; margin:0 auto; padding:2.5rem 1.25rem 5rem;
+  display:grid; grid-template-columns:14rem minmax(0,1fr); gap:2.5rem; align-items:start; }
+/* Sticky, with its own scrollbar: scrolling the page never moves it. */
+nav { position:sticky; top:1.5rem; max-height:calc(100vh - 3rem); overflow-y:auto;
+  border-right:1px solid var(--rule); padding-right:1rem; }
+nav h2 { font-size:.72rem; text-transform:uppercase; letter-spacing:.09em;
+  color:var(--muted); margin:0 0 .6rem; }
+nav ol { list-style:none; margin:0; padding:0; counter-reset:t; }
+nav > ol > li { counter-increment:t; margin:0 0 .6rem; }
+nav > ol > li > ol { counter-reset:s; margin:.2rem 0 0; padding-left:.55rem;
+  border-left:1px solid var(--rule); }
+nav > ol > li > ol > li { counter-increment:s; }
+nav a { display:block; padding:.3rem .5rem; border-radius:6px; text-decoration:none;
+  color:var(--fg); font-size:.88rem; }
+nav a.t1 { font-weight:600; font-size:.92rem; }
+nav a.t1::before { content:counter(t) ". "; color:var(--muted); font-weight:400; }
+nav > ol > li > ol a::before { content:counter(t) "." counter(s) " "; color:var(--muted); }
+nav a:hover { background:color-mix(in srgb,var(--fg) 7%,transparent); }
+h1 { font-size:1.9rem; line-height:1.2; margin:0 0 .35rem; letter-spacing:-.02em;
+  scroll-margin-top:1.5rem; }
+h2 { font-size:1.1rem; margin:2.5rem 0 .7rem; letter-spacing:-.01em; scroll-margin-top:1.5rem; }
+.alias { display:block; height:0; scroll-margin-top:1.5rem; }
+/* '#' affordance, revealed on hover or keyboard focus. */
+.anchor { margin-left:.45rem; opacity:0; text-decoration:none; font-weight:400;
+  color:var(--muted); transition:opacity .12s; }
+h1:hover .anchor, h2:hover .anchor, .anchor:focus { opacity:1; }
+.anchor.copied::after { content:" copied"; font-size:.72rem; color:var(--ok); }
+/* Navigating to a section that is already on screen scrolls nowhere, so the
+   click would otherwise have no visible effect. Flash the heading instead.
+   The highlight is a pseudo-element with a NEGATIVE inset, so it can sit
+   loosely around the text without padding the heading and shifting layout.
+   isolation + z-index:-1 keeps it behind the text but inside the heading's own
+   stacking context, so it cannot fall behind the page background. */
+h1, h2 { position:relative; isolation:isolate; }
+@keyframes flash {
+  0%   { background:rgb(var(--cell) / var(--tint-heat)); }
+  100% { background:rgb(var(--cell) / 0); }
+}
+h1.flash::before, h2.flash::before {
+  content:""; position:absolute; inset:-.35rem -.7rem; z-index:-1;
+  border-radius:8px; animation:flash 1.1s ease-out;
+}
+@media (prefers-reduced-motion:reduce) {
+  h1.flash::before, h2.flash::before { animation:none; }
+}
+.sub { color:var(--muted); margin:0 0 2rem; }
+.wrap { overflow-x:auto; border:1px solid var(--rule); border-radius:10px; background:var(--card); }
+table { border-collapse:collapse; width:100%; font-variant-numeric:tabular-nums; }
+caption { text-align:left; padding:.85rem 1rem .1rem; color:var(--muted); font-size:.875rem; }
+th,td { padding:.5rem .8rem; text-align:right; border-bottom:1px solid var(--rule); white-space:nowrap; }
+thead th { font-weight:600; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); }
+tbody tr:last-child th, tbody tr:last-child td { border-bottom:0; }
+th[scope="row"] { text-align:left; font-weight:600; }
+.grid tbody td { position:relative; isolation:isolate; }
+.grid tbody td::before { content:""; position:absolute; inset:0; background:rgb(var(--cell));
+  opacity:calc(var(--t) * var(--tint-heat)); z-index:-1; }
+math { font-size:1.05rem; }
+.eq { background:var(--card); border:1px solid var(--rule); border-radius:10px;
+  padding:.9rem 1rem; margin:.9rem 0; overflow-x:auto; }
+/* Tabs exist only when scripted, and are hidden under .no-js rather than being
+   revealed by script - see the .controls rule below for why. */
+.tabs { display:flex; gap:.25rem; margin:1rem 0 .5rem; flex-wrap:wrap; }
+.tabs[hidden] { display:none; }
+/* Weight is deliberately constant across states. Bolding the selected tab
+   changes its text width, which nudges every tab after it - the strip appears
+   to twitch each time you change selection. Selection is carried by colour and
+   the tint instead, neither of which affects layout. */
+.tabs button { font:inherit; font-size:.88rem; font-weight:500; cursor:pointer;
+  padding:.35rem .8rem; border:1px solid var(--rule); background:var(--card);
+  color:color-mix(in srgb,var(--fg) 80%,transparent); border-radius:999px; }
+.tabs button:hover { color:var(--fg); }
+.tabs button[aria-selected="true"] { background:rgb(var(--cell) / var(--tint-flag));
+  border-color:rgb(var(--cell) / var(--tint-rule)); color:var(--fg); }
+.tabs button:focus-visible { outline:2px solid rgb(var(--cell)); outline-offset:2px; }
+/* Separate stacked panels in the no-JS case only. A hidden panel is still an
+   adjacent sibling, so an unqualified adjacent-sibling rule would leave the
+   gap behind after the previous panel is collapsed. */
+.panel:not([hidden]) + .tabdesc { margin:.2rem 0 .7rem; }
+.note { color:var(--muted); font-size:.92rem; }
+code { font:.875em ui-monospace,SFMono-Regular,Menlo,monospace;
+  background:color-mix(in srgb,var(--fg) 8%,transparent); padding:.1em .35em; border-radius:4px; }
+.ok { color:var(--ok); } .warn { color:var(--warn); }
+ul { padding-left:1.1rem; } li { margin:.35rem 0; }
+footer { margin-top:3.5rem; padding-top:1.25rem; border-top:1px solid var(--rule);
+  color:var(--muted); font-size:.85rem; }
+@media (max-width:52rem) {
+  .layout { grid-template-columns:1fr; gap:1.25rem; }
+  nav { position:static; max-height:none; border-right:0;
+    border-bottom:1px solid var(--rule); padding:0 0 1rem; }
+}
+
+/* Fill slider. Hidden under .no-js: the pre-rendered table is correct at the
+   calibrated fill, and a control that cannot recompute it would be a lie. */
+.fill { margin:1.25rem 0 .25rem; }
+.fill[hidden] { display:none; }
+.fill label { font-size:.85rem; color:var(--muted); margin-right:.6rem; }
+.fill input[type=range] { vertical-align:middle; width:min(22rem,60%); accent-color:rgb(var(--cell)); }
+.fill output { font-variant-numeric:tabular-nums; font-weight:600; margin-left:.6rem; }
+
+/* Cells a hull cannot fit side by side. Swapping --cell retints the existing
+   heat shading rather than layering a second background over it. */
+.grid tbody td.hacky { --cell: var(--hack); }
+.grid tbody td.hacky::after {
+  content:""; position:absolute; inset:0; z-index:-1;
+  background:rgb(var(--hack) / var(--tint-flag));
+}
+/* Boundary between the two regions. */
+.grid tbody td.edge-l { border-left:2px solid rgb(var(--hack) / var(--tint-rule)); }
+.grid tbody td.edge-b { border-bottom:2px solid rgb(var(--hack) / var(--tint-rule)); }
+.legend { display:flex; gap:1.1rem; flex-wrap:wrap; align-items:center;
+  margin:.6rem 0 0; font-size:.85rem; color:var(--muted); }
+.legend span { display:inline-flex; align-items:center; gap:.4rem; }
+.legend i { width:.85rem; height:.85rem; border-radius:3px; display:inline-block; }
+.legend i.neat { background:rgb(var(--cell) / var(--tint-heat)); }
+.legend i.hack { background:rgb(var(--hack) / var(--tint-heat)); }
+.legend i.stall { background:none; width:auto; }
+
+/* Control cluster: two tab strips and the fill slider.
+   Shown by default and hidden only under .no-js. Doing it the other way round -
+   hidden in the markup, revealed by script - reflows the page after first paint
+   and visibly shoves everything below it down. */
+.no-js .controls, .no-js .tabs { display:none; }
+.controls { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem 1.5rem;
+  margin:1.1rem 0 .6rem; }
+.controls[hidden] { display:none; }
+.controls .tabs { margin:0; }
+.fill { display:flex; align-items:center; gap:.5rem; }
+.fill label { font-size:.85rem; color:var(--muted); }
+.fill input[type=range] { width:min(16rem,40vw); accent-color:rgb(var(--cell)); }
+.fill output { font-variant-numeric:tabular-nums; font-weight:600; min-width:3ch; }
+
+/* Fine control. Dragging snaps to the marked fills, so these are the only way
+   to reach the values next to a mark. Sized to stay a comfortable tap target. */
+.fill .step {
+  flex:0 0 auto; width:1.75rem; height:1.75rem; padding:0;
+  display:inline-flex; align-items:center; justify-content:center;
+  cursor:pointer; color:var(--fg); background:rgb(var(--cell) / .10);
+  border:1px solid rgb(var(--cell) / .35); border-radius:.35rem;
+  transition:background .12s, opacity .12s;
+}
+.fill .step .icon { width:.95rem; height:.95rem; display:block; }
+.fill .step:not(:disabled):hover { background:rgb(var(--cell) / .22); }
+.fill .step:not(:disabled):active { background:rgb(var(--cell) / .34); }
+.fill .step:focus-visible { outline:2px solid rgb(var(--cell)); outline-offset:2px; }
+
+/* At either end of the range the button has nowhere to go. Greyed rather than
+   hidden, so the control does not change width and the reason stays visible. */
+.fill .step:disabled {
+  cursor:default; opacity:.35; color:var(--muted);
+  background:transparent; border-color:rgb(var(--cell) / .18);
+}
+/* Fuel row is a different kind of quantity from the speeds above it. */
+#speed-grid tfoot th, #speed-grid tfoot td { border-top:2px solid var(--rule); border-bottom:0;
+  color:var(--muted); font-size:.85rem; }
+
+/* A platform whose thrust is below the constant drag term cannot move at all.
+   Render it as an em dash so it does not read as a broken cell. */
+.grid td.stalled { color:var(--muted); }
