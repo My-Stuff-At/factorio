@@ -195,13 +195,12 @@ footer { margin-top:3.5rem; padding-top:1.25rem; border-top:1px solid var(--rule
    Render it as an em dash so it does not read as a broken cell. */
 .grid td.stalled { color:var(--muted); }
 
-/* Kill-threshold table. Column groups of three (1/2/3 shots) per asteroid size,
-   so the group boundary needs a rule or the twelve numbers read as one block. */
-.kills thead tr:first-child th[scope="colgroup"] { text-align:center; }
-.kills th[scope="colgroup"],
-.kills thead tr:last-child th:nth-child(3n+1),
-.kills tbody td:nth-child(3n+2) { border-left:1px solid var(--rule); }
-.kills thead tr:last-child th { font-size:.72rem; }
+/* Kill-threshold table: one column per asteroid size, with the shot count moved
+   out to a switcher. An earlier version grouped three columns per size and drew
+   a rule every third one; those nth-child(3n+2) selectors survived the change
+   and put borders on two arbitrary columns, so they are gone rather than
+   adjusted. Every size column now gets the same separator. */
+.kills tbody td, .kills thead th + th { border-left:1px solid var(--rule); }
 /* Two states, both backgrounds rather than recoloured text, per the styleguide
    at the top of this file: reachable now, and past the practical wall. */
 .grid tbody td.ok-cell { background:rgb(var(--cell) / var(--tint-flag)); font-weight:600; }

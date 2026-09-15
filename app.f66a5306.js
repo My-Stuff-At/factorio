@@ -1,4 +1,5 @@
 import { createModel, cruise, formatRate, rateDigits } from './model.ad2f0250.js';
+import { levelFor, formatLevel, killCaption } from './combat.07d06a27.js';
 
 // Recompute the speed table for any combination of thruster quality, leg phase
 // and fill. The physics lives in model.mjs and is shared with the build and the
@@ -174,30 +175,71 @@ for (const a of document.querySelectorAll('a.anchor')) {
   });
 }
 
-// Asteroid type switcher. Unlike the speed table there is no continuous knob
-// here, so both variants are pre-rendered and this only toggles which is shown.
-// That keeps the scriptless page complete instead of leaving a dead control.
-const kindStrip = document.getElementById('kind-tabs');
-if (kindStrip) {
-  const buttons = [...kindStrip.querySelectorAll('[role="tab"]')];
-  const panels = buttons.map(b => document.getElementById(`kind-${b.dataset.kind}`));
-  const select = i => {
-    buttons.forEach((b, n) => {
-      b.setAttribute('aria-selected', String(n === i));
-      b.tabIndex = n === i ? 0 : -1;
+// ---------------------------------------------------------------- combat table
+// Two switchers, asteroid type and shots to kill, so six combinations. One is
+// pre-rendered and the rest are computed here from the same module the build
+// used - including formatLevel, so a threshold cannot render one way in the
+// fallback table and another way after a tab click.
+const combatData = document.getElementById('combat');
+if (combatData) {
+  const C = JSON.parse(combatData.textContent);
+  const table = document.getElementById('kill-grid');
+  const caption = document.getElementById('kill-caption');
+  const pick = { kind: C.kinds[0], shots: C.shotCounts[0] };
+
+  const CELL_CLASS = { free: 'ok-cell', wall: 'hacky', plain: '' };
+
+  const renderKills = () => {
+    // Header carries the hit points, which double for promethium.
+    table.querySelectorAll('thead th[data-size]').forEach(th => {
+      const a = C.asteroids.find(x => x.size === th.dataset.size);
+      th.innerHTML = `${a.size} &middot; ${num(a.hp * pick.kind.mul)} hp`;
     });
-    panels.forEach((p, n) => { if (p) p.hidden = n !== i; });
+
+    table.querySelectorAll('tbody tr').forEach((tr, r) => {
+      const weapon = C.weapons[r];
+      const family = C.families[weapon.family];
+      tr.querySelectorAll('td').forEach((td, c) => {
+        const level = levelFor({
+          weapon, family, asteroid: C.asteroids[c],
+          shots: pick.shots, hpMultiplier: pick.kind.mul,
+        });
+        const { text, state } = formatLevel(level);
+        td.textContent = text;
+        td.className = CELL_CLASS[state];
+      });
+    });
+
+    caption.innerHTML = killCaption(pick);
   };
-  buttons.forEach((b, i) => {
-    b.addEventListener('click', () => select(i));
-    b.addEventListener('keydown', e => {
-      const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
-      if (!d) return;
-      e.preventDefault();
-      const n = (i + d + buttons.length) % buttons.length;
-      select(n);
-      buttons[n].focus();
+
+  /** Wire one strip; `apply` maps the chosen index onto `pick`. */
+  const wireStrip = (id, apply) => {
+    const strip = document.getElementById(id);
+    if (!strip) return;
+    const buttons = [...strip.querySelectorAll('[role="tab"]')];
+    const select = i => {
+      buttons.forEach((b, n) => {
+        b.setAttribute('aria-selected', String(n === i));
+        b.tabIndex = n === i ? 0 : -1;
+      });
+      apply(i);
+      renderKills();
+    };
+    buttons.forEach((b, i) => {
+      b.addEventListener('click', () => select(i));
+      b.addEventListener('keydown', e => {
+        const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        const n = (i + d + buttons.length) % buttons.length;
+        select(n);
+        buttons[n].focus();
+      });
     });
-  });
-  select(0);
+  };
+
+  wireStrip('kind-tabs', i => { pick.kind = C.kinds[i]; });
+  wireStrip('shot-tabs', i => { pick.shots = C.shotCounts[i]; });
+  renderKills();
 }
