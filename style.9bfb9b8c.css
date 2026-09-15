@@ -85,7 +85,11 @@ th,td { padding:.5rem .8rem; text-align:right; border-bottom:1px solid var(--rul
 thead th { font-weight:600; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); }
 tbody tr:last-child th, tbody tr:last-child td { border-bottom:0; }
 th[scope="row"] { text-align:left; font-weight:600; }
-.grid tbody td { position:relative; isolation:isolate; }
+/* --t defaults to 0 so a cell that carries no heat value is simply
+   transparent. Without it, calc(var(--t) * ...) is INVALID rather than zero,
+   opacity falls back to 1, and the cell renders as a solid block - which has
+   now happened twice, first on a tfoot and then on a whole second table. */
+.grid tbody td { position:relative; isolation:isolate; --t:0; }
 .grid tbody td::before { content:""; position:absolute; inset:0; background:rgb(var(--cell));
   opacity:calc(var(--t) * var(--tint-heat)); z-index:-1; }
 math { font-size:1.05rem; }
@@ -190,3 +194,19 @@ footer { margin-top:3.5rem; padding-top:1.25rem; border-top:1px solid var(--rule
 /* A platform whose thrust is below the constant drag term cannot move at all.
    Render it as an em dash so it does not read as a broken cell. */
 .grid td.stalled { color:var(--muted); }
+
+/* Kill-threshold table. Column groups of three (1/2/3 shots) per asteroid size,
+   so the group boundary needs a rule or the twelve numbers read as one block. */
+.kills thead tr:first-child th[scope="colgroup"] { text-align:center; }
+.kills th[scope="colgroup"],
+.kills thead tr:last-child th:nth-child(3n+1),
+.kills tbody td:nth-child(3n+2) { border-left:1px solid var(--rule); }
+.kills thead tr:last-child th { font-size:.72rem; }
+/* Two states, both backgrounds rather than recoloured text, per the styleguide
+   at the top of this file: reachable now, and past the practical wall. */
+.grid tbody td.ok-cell { background:rgb(var(--cell) / var(--tint-flag)); font-weight:600; }
+.legend { color:var(--muted); font-size:.85rem; margin:.5rem 0 1rem; }
+.legend .sw { display:inline-block; width:.7rem; height:.7rem; border-radius:3px;
+  vertical-align:middle; margin-right:.3rem; border:1px solid var(--rule); }
+.legend .sw.ok { background:rgb(var(--cell) / var(--tint-flag)); }
+.legend .sw.hack { background:rgb(var(--hack) / var(--tint-flag)); }
