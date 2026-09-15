@@ -239,7 +239,7 @@
 
     <h2 id="damage-model">The damage model<a class="anchor" href="#damage-model" aria-label="Copy link to The damage model">#</a></h2>
     <div class="eq"><math display="block"><mrow><mi>applied</mi><mo>=</mo><mrow><mo>(</mo><mi>base</mi><mo>&#x2062;</mo><msup><mrow><mo>(</mo><mn>1</mn><mo>+</mo><mi>bonus</mi><mo>)</mo></mrow><mi>n</mi></msup><mo>&#x2212;</mo><mi>decrease</mi><mo>)</mo></mrow><mo>&#x22C5;</mo><mrow><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><mi>percent</mi><mo>)</mo></mrow></mrow></math></div>
-    <p>where <code>n</code> is 2 for bullets, because the same technology raises the ammo and the turret, and 1 for everything else. The <strong>flat decrease is subtracted before the percentage</strong>, and it is the whole story on large asteroids: big subtracts 2,000 from every physical hit and huge subtracts 3,000. That is a wall, not a penalty &mdash; no amount of bullet research clears it at a level anyone will reach, which is why rocket turrets are mandatory rather than optional on any route that spawns big asteroids.</p>
+    <p>where <code>n</code> is 2 for bullets, because the same technology raises the ammo and the turret, and 1 for everything else. The <strong>flat decrease is subtracted before the percentage</strong>, and it is the whole story on large asteroids: big subtracts 2,000 from every physical hit and huge subtracts 3,000. No amount of bullet research clears that at a level anyone will reach, so any route spawning big asteroids needs rocket turrets.</p>
 
 
     <h2 id="asteroid-stats">Asteroid hit points and resistances<a class="anchor" href="#asteroid-stats" aria-label="Copy link to Asteroid hit points and resistances">#</a></h2>
@@ -277,8 +277,8 @@
 
     <h2 id="combat-caveats">What is left out<a class="anchor" href="#combat-caveats" aria-label="Copy link to What is left out">#</a></h2>
     <ul>
-      <li><strong>Nuke.</strong> not yet modelled. A nuclear explosion is a staged sequence of nested area effects rather than a single figure, and getting it right wants a sandbox measurement rather than reading the prototype.</li>
-      <li><strong>This counts shots, not time.</strong> A weapon that needs fewer shots is not automatically better: fire rate, range and how long a target stays in reach all matter, and a turret engages one asteroid at a time.</li>
+      <li><strong>Nuke.</strong> Not yet modeled. A nuclear explosion is a staged sequence of nested area effects rather than a single figure, so pinning it down wants a sandbox measurement.</li>
+      <li><strong>A shot count is not a ranking.</strong> Fire rate, range and how long a target stays in reach all matter, and a turret engages one asteroid at a time.</li>
     </ul>
 
     <footer>Generated from measurements taken in a live game, Factorio 2.1.17 Space Age.
