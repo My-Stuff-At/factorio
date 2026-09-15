@@ -220,12 +220,27 @@ footer { margin-top:3.5rem; padding-top:1.25rem; border-top:1px solid var(--rule
    Plain inline, NOT inline-flex. A flex container has a height of its own, and
    `align-items:center` pushes the icon below the baseline: that measured 0.61px
    of extra height on every row. An inline image on the baseline occupies 1cap
-   ABOVE it, which is inside the font's ascent, so the line box cannot grow. */
+   ABOVE it, which is inside the font's ascent, so the line box cannot grow.
+
+   A 1cap icon is legible next to 1cap capitals but not next to a 16px face -
+   there is simply not enough of a 64px sprite left at 11px. So the icon DRAWS
+   larger than its box: --iref-scale sets how much, and negative block margins
+   pull the inline box back to exactly 1cap. Vertical margins do affect the
+   inline box of a REPLACED element like an image, unlike a non-replaced one,
+   which is what makes this work at all.
+
+   The overflow paints into the line's leading. At the body's 1.6 line-height
+   that is about 3.5px a side, so a scale much past 2 would start to touch the
+   line above in wrapped prose. In a single-line table cell there is no limit. */
 .iref { text-decoration:none; color:inherit; white-space:nowrap; }
 .iref img {
-  height:.72em; width:.72em;
-  height:1cap; width:1cap;
-  vertical-align:baseline; margin-right:.35em;
+  --iref-scale:1.75;
+  /* em fallback first, for Safari before 16.4; the cap pair overrides it */
+  height:calc(.72em * var(--iref-scale)); width:calc(.72em * var(--iref-scale));
+  margin-block:calc((.72em - .72em * var(--iref-scale)) / 2);
+  height:calc(1cap * var(--iref-scale)); width:calc(1cap * var(--iref-scale));
+  margin-block:calc((1cap - 1cap * var(--iref-scale)) / 2);
+  vertical-align:baseline; margin-right:.3em;
 }
 .iref:hover { text-decoration:underline; text-decoration-color:rgb(var(--cell)); }
 .iref:focus-visible { outline:2px solid rgb(var(--cell)); outline-offset:2px; border-radius:3px; }
