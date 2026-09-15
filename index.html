@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Space platform cruise speed — Factorio Space Age</title>
+<meta name="description" content="Cruise speed in km/s by hull width and thruster count, computed from the game's own acceleration expression and calibrated against measured ships.">
+<style>
+  :root {
+    --bg: #fbfaf8; --fg: #1a1815; --muted: #6b6560; --rule: #e3ded7;
+    --card: #ffffff; --accent: #b4530a; --ok: #2f6b3a; --warn: #9a3412;
+    --cell-lo: 250 248 245; --cell-hi: 180 83 10;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #171614; --fg: #ece8e1; --muted: #9b948c; --rule: #322e29;
+      --card: #201e1b; --accent: #e8913f; --ok: #6ee7a0; --warn: #fca5a5;
+      --cell-lo: 32 30 27; --cell-hi: 232 145 63;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #171614; --fg: #ece8e1; --muted: #9b948c; --rule: #322e29;
+    --card: #201e1b; --accent: #e8913f; --ok: #6ee7a0; --warn: #fca5a5;
+    --cell-lo: 32 30 27; --cell-hi: 232 145 63;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2.5rem 1.25rem 5rem; background: var(--bg); color: var(--fg);
+    font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 56rem; margin: 0 auto; }
+  h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 .4rem; letter-spacing: -.02em; }
+  h2 { font-size: 1.1rem; margin: 2.75rem 0 .75rem; letter-spacing: -.01em; }
+  .sub { color: var(--muted); margin: 0 0 2rem; }
+  .wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--card); }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  caption { text-align: left; padding: .9rem 1rem .1rem; color: var(--muted); font-size: .875rem; }
+  th, td { padding: .5rem .85rem; text-align: right; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+  thead th { font-weight: 600; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+  th[scope="row"] { text-align: left; font-weight: 600; }
+  #grid td { background: rgb(var(--cell-lo) / 1); position: relative; }
+  #grid td::before {
+    content: ""; position: absolute; inset: 0; background: rgb(var(--cell-hi));
+    opacity: calc(var(--t) * 0.45); pointer-events: none;
+  }
+  #grid td { isolation: isolate; }
+  #grid td span { position: relative; }
+  .note { color: var(--muted); font-size: .9rem; }
+  code { font: .875em ui-monospace, SFMono-Regular, Menlo, monospace; background: color-mix(in srgb, var(--fg) 8%, transparent); padding: .1em .35em; border-radius: 4px; }
+  pre { overflow-x: auto; background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: 1rem; font: .82rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .ok { color: var(--ok); } .warn { color: var(--warn); }
+  footer { margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .85rem; }
+  ul { padding-left: 1.1rem; } li { margin: .35rem 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Space platform cruise speed</h1>
+  <p class="sub">Steady-state speed in km/s by hull width and thruster count, for Factorio 2.1.17 Space Age.</p>
+
+  <div class="wrap">
+    <table id="grid">
+      <caption>legendary thrusters, platform weight 200,000. Values are <strong>v0</strong>.</caption>
+      <thead>
+        <tr><th scope="col">Width</th><th scope="col">1 thruster</th><th scope="col">2 thrusters</th><th scope="col">3 thrusters</th><th scope="col">4 thrusters</th></tr>
+      </thead>
+      <tbody>
+      <tr>
+        <th scope="row">8</th>
+        <td style="--t:0.308">298</td>
+        <td style="--t:0.596">440</td>
+        <td style="--t:0.815">547</td>
+        <td style="--t:1.000">638</td>
+      </tr>
+      <tr>
+        <th scope="row">10</th>
+        <td style="--t:0.238">264</td>
+        <td style="--t:0.495">390</td>
+        <td style="--t:0.692">487</td>
+        <td style="--t:0.857">568</td>
+      </tr>
+      <tr>
+        <th scope="row">12</th>
+        <td style="--t:0.186">239</td>
+        <td style="--t:0.421">354</td>
+        <td style="--t:0.600">442</td>
+        <td style="--t:0.751">516</td>
+      </tr>
+      <tr>
+        <th scope="row">14</th>
+        <td style="--t:0.146">219</td>
+        <td style="--t:0.363">326</td>
+        <td style="--t:0.529">407</td>
+        <td style="--t:0.669">475</td>
+      </tr>
+      <tr>
+        <th scope="row">16</th>
+        <td style="--t:0.114">203</td>
+        <td style="--t:0.317">303</td>
+        <td style="--t:0.472">379</td>
+        <td style="--t:0.602">443</td>
+      </tr>
+      <tr>
+        <th scope="row">20</th>
+        <td style="--t:0.064">179</td>
+        <td style="--t:0.246">268</td>
+        <td style="--t:0.384">336</td>
+        <td style="--t:0.501">393</td>
+      </tr>
+      <tr>
+        <th scope="row">24</th>
+        <td style="--t:0.028">161</td>
+        <td style="--t:0.194">242</td>
+        <td style="--t:0.320">304</td>
+        <td style="--t:0.426">356</td>
+      </tr>
+      <tr>
+        <th scope="row">28</th>
+        <td style="--t:0.000">147</td>
+        <td style="--t:0.153">222</td>
+        <td style="--t:0.270">280</td>
+        <td style="--t:0.368">328</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Reading it</h2>
+  <ul>
+    <li><strong>Narrow beats wide.</strong> Drag scales with width, thrust does not — halving the width is worth roughly 1.4× the speed at the same thruster count.</li>
+    <li><strong>Thrusters stack in series.</strong> There is no top speed; adding thrusters adds thrust without adding drag, so long-and-narrow is the fast shape.</li>
+    <li><strong>These are v0.</strong> A leg runs about 10 km/s below this before its midpoint and 10 above after, so a ship reads as two plateaus 20 apart.</li>
+    <li><strong>Weight is <code>200 × tiles + 40,000</code></strong>, and machines are massless — only foundation counts. The grid fixes weight at 200,000; a heavier hull is proportionally slower to accelerate but reaches the same cruise.</li>
+  </ul>
+
+  <h2>Where the numbers come from</h2>
+  <p class="note">Cruise is the speed at which thrust balances drag, solved from the game's own acceleration expression:</p>
+  <pre>(thrust / (1 + weight / 10000000) - ((1500 * speed * speed + 1500 * abs(speed)) * (width * 0.5) + 10000) * sign(speed)) / weight / 60</pre>
+  <p class="note">Thrust per thruster is not exposed by the API. It was measured across ship classes at the fleet's fill setpoint, and the page recomputes each measured ship from the resulting constant as a self-check — the build fails if any prediction drifts more than 1%.</p>
+
+  <div class="wrap">
+    <table>
+      <caption>Calibration and self-check</caption>
+      <thead><tr>
+        <th scope="col">Width</th><th scope="col">Thrusters</th>
+        <th scope="col">Weight</th><th scope="col">Measured v0</th><th scope="col">Predicted</th><th scope="col">Error</th>
+      </tr></thead>
+      <tbody>
+      <tr>
+        <td>16</td><td>3 normal</td>
+        <td>363,200</td><td>224.8</td><td>224.4</td>
+        <td class="ok">-0.20%</td>
+      </tr>
+      <tr>
+        <td>24</td><td>5 normal</td>
+        <td>735,200</td><td>235.2</td><td>235.7</td>
+        <td class="ok">+0.19%</td>
+      </tr>
+      <tr>
+        <td>10</td><td>2 legendary</td>
+        <td>168,000</td><td>391.0</td><td>391.0</td>
+        <td class="ok">+0.00%</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Caveats</h2>
+  <ul>
+    <li>Measured at the fleet's fill setpoint (P=43, thruster fluid ~426-451), NOT physical maxima. Values are v0: subtract 10 before a leg's midpoint, add 10 after.</li>
+    <li>Validated against a 10-wide hull with 2 legendary thrusters at weight 168,000: predicted v0 391 against measured plateaus of 381.3 and 401.</li>
+    <li><code>platform.speed</code> is tiles/tick; km/s = <code>speed × 60</code>, where 60 is the design UPS and 1 tile = 1 km.</li>
+  </ul>
+
+  <footer>
+    Generated from measurements taken in a live game, Factorio 2.1.17 Space Age.
+    Every figure is recomputed at build time from the acceleration expression, not transcribed.
+  </footer>
+</main>
+</body>
+</html>
