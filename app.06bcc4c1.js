@@ -195,10 +195,11 @@ if (combatData) {
     const kind = C.kinds[pick.kindIndex];
     const rows = C.levels[pick.kindIndex][pick.shotIndex];
 
-    // Header carries the hit points, which double for promethium.
-    table.querySelectorAll('thead th[data-size]').forEach(th => {
-      const a = C.sizes.find(x => x.size === th.dataset.size);
-      th.innerHTML = `${a.size} &middot; ${num(a.hp * kind.mul)} hp`;
+    // Hit points sit in their own row under the size headers, and double for
+    // promethium. The size names themselves never change.
+    table.querySelectorAll('thead td[data-size]').forEach(td => {
+      const size = C.sizes.find(x => x.size === td.dataset.size);
+      td.textContent = `${num(size.hp * kind.mul)} hp`;
     });
 
     table.querySelectorAll('tbody tr').forEach((tr, r) => {

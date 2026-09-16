@@ -256,3 +256,10 @@ th .iref { font-weight:inherit; }
 .kills tbody th { font-weight:400; color:var(--fg); }
 .kills tbody th.tech { text-align:left; vertical-align:middle;
   border-left:1px solid var(--rule); }
+
+/* The hit-point row is data, not a header: it sits inside thead so the Weapon
+   and Technology headers can span both rows, but it reads like every other body
+   cell. Muted only slightly, because it is context for the column rather than an
+   answer to the question the table is asking. */
+.kills thead td.hp { font-weight:400; color:var(--muted); text-transform:none;
+  letter-spacing:normal; font-size:.85rem; }
