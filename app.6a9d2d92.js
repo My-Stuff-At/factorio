@@ -195,6 +195,14 @@ if (combatData) {
     const kind = C.kinds[pick.kindIndex];
     const rows = C.levels[pick.kindIndex][pick.shotIndex];
 
+    // Asteroid sprites: three types for the standard kinds, one for promethium.
+    // The markup is built at build time, one string per kind, so the browser is
+    // only choosing between them.
+    table.querySelectorAll('thead td[data-rocks]').forEach(td => {
+      const size = C.sizes.find(x => x.size === td.dataset.rocks);
+      td.innerHTML = size.rocks[pick.kindIndex];
+    });
+
     // Hit points sit in their own row under the size headers, and double for
     // promethium. The size names themselves never change.
     table.querySelectorAll('thead td[data-size]').forEach(td => {
@@ -270,8 +278,7 @@ const TYPE_LABEL = {
 };
 
 (() => {
-  const triggers = document.querySelectorAll('.iref[data-name]');
-  if (!triggers.length) return;
+  if (!document.querySelector('.iref[data-name]')) return;
   const wiki = JSON.parse(document.getElementById('wiki-meta')?.textContent || '{}');
 
   const card = document.createElement('div');
@@ -359,38 +366,19 @@ const TYPE_LABEL = {
   };
   const hideNow = () => { clearTimeout(closing); card.hidden = true; anchor = null; };
 
-  for (const trigger of triggers) {
-    trigger.addEventListener('mouseenter', () => show(trigger));
-    trigger.addEventListener('focus', () => show(trigger));
-    trigger.addEventListener('mouseleave', scheduleHide);
-    trigger.addEventListener('blur', scheduleHide);
-
-    // The trigger is not a link any more, so Enter has nothing of its own to do
-    // and Tab would skip past the card - it lives at the end of <body>, nowhere
-    // near the trigger in document order. Both therefore hand focus to the
-    // card's link, which keeps the wiki page reachable without a mouse.
-    trigger.addEventListener('keydown', e => {
-      const wants = e.key === 'Enter' || e.key === ' ' || (e.key === 'Tab' && !e.shiftKey);
-      if (!wants) return;
-      show(trigger);
-      const link = card.querySelector('a.wiki');
-      if (!link) return;
-      e.preventDefault();
-      clearTimeout(closing);
-      link.focus();
-    });
-  }
+  // Delegated, not bound per element. The asteroid row is replaced when the
+  // type switcher changes, and per-element handlers died with the old markup -
+  // the icons stopped responding after one click of the switcher.
+  document.addEventListener('mouseover', e => {
+    const trigger = e.target.closest?.('.iref[data-name]');
+    if (!trigger || trigger === anchor) return;
+    show(trigger);
+  });
+  document.addEventListener('mouseout', e => {
+    if (e.target.closest?.('.iref[data-name]')) scheduleHide();
+  });
   card.addEventListener('mouseenter', () => clearTimeout(closing));
   card.addEventListener('mouseleave', scheduleHide);
-  card.addEventListener('focusin', () => clearTimeout(closing));
-  card.addEventListener('focusout', scheduleHide);
-
-  addEventListener('keydown', e => {
-    if (e.key !== 'Escape') return;
-    const back = anchor;
-    hideNow();
-    back?.focus();
-  });
 
   // position:fixed, so the card has to follow its anchor when anything scrolls.
   // It repositions rather than hides: focusing a link scrolls it into view, and

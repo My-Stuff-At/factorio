@@ -320,3 +320,15 @@ th .iref { font-weight:inherit; }
 
 .iref-card .kind { color:var(--muted); font-size:.75rem; text-transform:uppercase;
   letter-spacing:.06em; }
+
+/* Asteroid sprites, between the size names and their hit points. Three types for
+   metallic/carbonic/oxide, one for promethium.
+
+   These triggers are icon-only, so the dotted underline has to go: with no text
+   it would draw a line under the image instead of hinting at anything. */
+.kills thead td.rocks { text-align:left; padding-top:.3rem; padding-bottom:.3rem; }
+.kills td.rocks .iref { text-decoration:none; }
+.kills td.rocks .iref img {
+  width:1.45rem; height:1.45rem;      /* the row's whole point, so larger than 1cap */
+  margin:0 .15rem 0 0; vertical-align:middle;
+}
