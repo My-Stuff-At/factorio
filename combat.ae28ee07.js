@@ -243,9 +243,8 @@ export function killGrid({ weapons, families, asteroids, shotCounts, hpMultiplie
 export function cellNote(level, family, techName) {
   if (level === null) return 'No research level works: this damage type is fully resisted.';
   if (level === 0) return 'Already works with no research.';
-  const cost = researchCost(family.cost, level);
   return `${techName} ${level.toLocaleString('en-US')}`
-    + ` \u2014 ${formatCount(cost)} research units, ${cost.packs} science packs each`;
+    + ` \u2014 ${formatCount(researchCost(family.cost, level))} research units`;
 }
 
 /**
