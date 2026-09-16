@@ -85,10 +85,13 @@ export function levelFor({ weapon, family, asteroid, shots, hpMultiplier = 1, ca
 }
 
 /**
- * Past this the exact figure is noise: 2,859 and "no reachable level" are the
- * same advice, which is that this is the wrong weapon for this size.
+ * Past this the exact figure stops being useful.
+ *
+ * Was 99, which turned out to be far too low: people run bases whose damage
+ * research is in the hundreds, and collapsing 142 into ">99" hid a threshold
+ * that is genuinely reachable. 999 is past anyone.
  */
-export const WALL = 99;
+export const WALL = 999;
 
 /**
  * Render one level for a table cell, as { text, state }.

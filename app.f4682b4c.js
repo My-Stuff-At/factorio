@@ -1,5 +1,5 @@
 import { createModel, cruise, formatRate, rateDigits } from './model.ad2f0250.js';
-import { formatLevel, killCaption } from './combat.07d06a27.js';
+import { formatLevel, killCaption } from './combat.ce82f942.js';
 
 // Recompute the speed table for any combination of thruster quality, leg phase
 // and fill. The physics lives in model.mjs and is shared with the build and the

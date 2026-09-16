@@ -81,13 +81,22 @@ h1.flash::before, h2.flash::before {
 .wrap { overflow-x:auto; border:1px solid var(--rule); border-radius:10px; background:var(--card); }
 table { border-collapse:collapse; width:100%; font-variant-numeric:tabular-nums; }
 caption { text-align:left; padding:.85rem 1rem .1rem; color:var(--muted); font-size:.875rem; }
-th,td { padding:.5rem .8rem; text-align:right; border-bottom:1px solid var(--rule); white-space:nowrap; }
+th,td { padding:.5rem .8rem; text-align:right; white-space:nowrap;
+  border:1px solid var(--rule); }
+/* Every cell is bordered on all four sides, and border-collapse merges the
+   shared edges into single lines. The table's OUTERMOST edges are then removed,
+   because .wrap already draws a rounded border there and two 1px lines side by
+   side read as a heavy, slightly wrong edge. */
+thead tr:first-child > * { border-top:0; }
+tr > :first-child { border-left:0; }
+tr > :last-child { border-right:0; }
+tfoot tr:last-child > * { border-bottom:0; }
+table:not(:has(tfoot)) tbody tr:last-child > * { border-bottom:0; }
 /* Column headers are left-aligned even though the data under them is right-
    aligned. Right-aligning a header pushes the label to the far edge of a wide
    column, where it stops reading as the heading for that column. */
 thead th { font-weight:600; font-size:.78rem; letter-spacing:.04em;
   text-transform:uppercase; color:var(--muted); text-align:left; }
-tbody tr:last-child th, tbody tr:last-child td { border-bottom:0; }
 th[scope="row"] { text-align:left; font-weight:600; }
 /* --t defaults to 0 so a cell that carries no heat value is simply
    transparent. Without it, calc(var(--t) * ...) is INVALID rather than zero,
@@ -204,7 +213,6 @@ footer { margin-top:3.5rem; padding-top:1.25rem; border-top:1px solid var(--rule
    a rule every third one; those nth-child(3n+2) selectors survived the change
    and put borders on two arbitrary columns, so they are gone rather than
    adjusted. Every size column now gets the same separator. */
-.kills tbody td, .kills thead th + th { border-left:1px solid var(--rule); }
 /* Two states, both backgrounds rather than recoloured text, per the styleguide
    at the top of this file: reachable now, and past the practical wall. */
 .grid tbody td.ok-cell { background:rgb(var(--cell) / var(--tint-flag)); font-weight:600; }
@@ -258,8 +266,7 @@ th .iref { font-weight:inherit; }
    weapon and technology cells are th for structure and grouping, not to look
    different. Scoped to .kills so the speed table above keeps its own emphasis. */
 .kills tbody th { font-weight:400; color:var(--fg); }
-.kills tbody th.tech { text-align:left; vertical-align:middle;
-  border-left:1px solid var(--rule); }
+.kills tbody th.tech { text-align:left; vertical-align:middle; }
 
 /* The hit-point row carries no styling of its own. It sits inside thead only so
    the Weapon and Technology headers can span both rows; being a td rather than a
