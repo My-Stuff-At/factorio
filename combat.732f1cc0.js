@@ -157,19 +157,35 @@ export function researchCost(cost, level) {
   return { units, log10, packs: cost.packs };
 }
 
-/** 128k, 23.1M, 1.3B, and a power of ten once even that stops meaning anything. */
+const SUPERSCRIPT = { '0': '⁰', '1': '¹', '2': '²', '3': '³',
+  '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+const superscript = n => String(n).replace(/[0-9]/g, d => SUPERSCRIPT[d]);
+
+/**
+ * Human-readable count: 128k, 23.1M, 1.3B, then a power of ten still in
+ * billions once the ladder runs out - 10^35 B rather than 8.7e43.
+ *
+ * Billions is the top of the ladder on purpose. Past a thousand billion the
+ * exact figure carries no meaning a reader can use, and bare scientific
+ * notation reads like a parse error; keeping the familiar unit and showing the
+ * exponent against it is legible at any magnitude.
+ *
+ * The exponent is written with Unicode superscript digits rather than markup,
+ * because the only place this lands is a title attribute, which is plain text.
+ */
 export function formatCount({ units, log10 }) {
-  if (units !== Infinity && units < 1000) return String(Math.round(units));
   if (units !== Infinity) {
-    for (const [suffix, size] of [['T', 1e12], ['B', 1e9], ['M', 1e6], ['k', 1e3]]) {
-      if (units >= size) {
+    if (units < 1000) return String(Math.round(units));
+    for (const [suffix, size] of [['k', 1e3], ['M', 1e6], ['B', 1e9]]) {
+      if (units < size * 1000) {
         const scaled = units / size;
-        return (scaled < 10 ? scaled.toFixed(1) : Math.round(scaled).toLocaleString('en-US')) + suffix;
+        const text = scaled < 10 ? scaled.toFixed(1).replace(/.0$/, '') : String(Math.round(scaled));
+        return text + suffix;
       }
     }
   }
-  const exponent = Math.floor(log10);
-  return `${Math.pow(10, log10 - exponent).toFixed(1)}e${exponent}`;
+  // Beyond a thousand billion, or beyond what a double can hold at all.
+  return `10${superscript(Math.round(log10 - 9))} B`;
 }
 
 /**
@@ -231,3 +247,11 @@ export function cellNote(level, family, techName) {
   return `${techName} ${level.toLocaleString('en-US')}`
     + ` \u2014 ${formatCount(cost)} research units, ${cost.packs} science packs each`;
 }
+
+/**
+ * Asteroid hit points for a column header: 2k rather than 2,000.
+ *
+ * Reuses the same ladder as the research counts so the page never shows one
+ * magnitude two different ways.
+ */
+export const formatHitPoints = hp => formatCount({ units: hp, log10: Math.log10(hp) });

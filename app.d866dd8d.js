@@ -1,5 +1,5 @@
 import { createModel, cruise, formatRate, rateDigits } from './model.ad2f0250.js';
-import { formatLevel, killCaption, cellNote } from './combat.69bf4ea3.js';
+import { formatLevel, killCaption, cellNote, formatHitPoints } from './combat.732f1cc0.js';
 
 // Recompute the speed table for any combination of thruster quality, leg phase
 // and fill. The physics lives in model.mjs and is shared with the build and the
@@ -199,7 +199,7 @@ if (combatData) {
     // promethium. The size names themselves never change.
     table.querySelectorAll('thead td[data-size]').forEach(td => {
       const size = C.sizes.find(x => x.size === td.dataset.size);
-      td.textContent = `${num(size.hp * kind.mul)} hp`;
+      td.textContent = `${formatHitPoints(size.hp * kind.mul)} hp`;
     });
 
     table.querySelectorAll('tbody tr').forEach((tr, r) => {
