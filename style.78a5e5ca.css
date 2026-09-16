@@ -266,3 +266,22 @@ th .iref { font-weight:inherit; }
 /* The hit-point row carries no styling of its own. It sits inside thead only so
    the Weapon and Technology headers can span both rows; being a td rather than a
    th is all it takes to read as data, because the header styling targets th. */
+
+/* Wiki reference card. Fixed rather than absolute: the tables sit inside an
+   overflow-x container, and an absolutely positioned child would be clipped by
+   it exactly where the card is most needed - at the edges. */
+.iref-card {
+  position:fixed; z-index:50; display:flex; gap:.7rem; align-items:center;
+  max-width:18rem; padding:.6rem .75rem;
+  background:var(--card); color:var(--fg);
+  border:1px solid rgb(var(--cell) / var(--tint-rule)); border-radius:10px;
+  box-shadow:0 6px 20px rgb(0 0 0 / .35);
+  font-size:.9rem; line-height:1.35; pointer-events:none;
+}
+.iref-card[hidden] { display:none; }
+.iref-card img { width:48px; height:48px; flex:0 0 auto; }
+.iref-card div { display:flex; flex-direction:column; min-width:0; }
+.iref-card strong { font-weight:600; }
+.iref-card .kind { color:var(--muted); font-size:.8rem; text-transform:uppercase;
+  letter-spacing:.05em; }
+.iref-card .where { color:var(--link); font-size:.8rem; margin-top:.15rem; }

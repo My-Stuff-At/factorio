@@ -247,3 +247,110 @@ if (combatData) {
   wireStrip('shot-tabs', i => { pick.shotIndex = i; });
   renderKills();
 }
+
+// ---------------------------------------------------------------- wiki tooltip
+// A card for the item, entity or technology a link points at: larger icon, the
+// game's full name, what kind of thing it is, and where the link goes.
+//
+// Hand-rolled rather than pulled in. The content is four static fields; the only
+// hard part is placement, and that is about thirty lines here. A positioning
+// library earns its size when tooltips flip, carry arrows, or anchor to virtual
+// elements, none of which this does.
+//
+// Everything it shows comes off the anchor's own data attributes, written by
+// wiki.mjs at build time, so the card cannot disagree with the link it describes
+// and there is no second lookup table to keep in step.
+//
+// Progressive enhancement: with no JavaScript the links still work and still say
+// where they go. The card only ever adds.
+const TYPE_LABEL = {
+  item: 'Item', entity: 'Entity', fluid: 'Fluid', equipment: 'Equipment',
+  technology: 'Technology', 'asteroid-chunk': 'Asteroid chunk',
+  'space-location': 'Space location', tile: 'Tile', quality: 'Quality',
+};
+
+(() => {
+  const links = document.querySelectorAll('a.iref[data-name]');
+  if (!links.length) return;
+
+  const card = document.createElement('div');
+  card.className = 'iref-card';
+  card.hidden = true;
+  // Presentational: the anchor it describes is already in the tab order and
+  // carries the same information, so announcing this twice helps nobody.
+  card.setAttribute('aria-hidden', 'true');
+  document.body.append(card);
+
+  let anchor = null;
+
+  const place = () => {
+    if (!anchor) return;
+    const a = anchor.getBoundingClientRect();
+    const c = card.getBoundingClientRect();
+    const margin = 8;
+    // Prefer above; drop below when there is no room. Then clamp horizontally so
+    // a link near either edge does not push the card off screen - the table
+    // scrolls sideways, so edge cases are the normal case here.
+    const above = a.top - c.height - margin;
+    const top = above >= margin ? above : a.bottom + margin;
+    const left = Math.min(
+      Math.max(margin, a.left + a.width / 2 - c.width / 2),
+      window.innerWidth - c.width - margin);
+    card.style.top = `${Math.round(top)}px`;
+    card.style.left = `${Math.round(left)}px`;
+  };
+
+  const show = el => {
+    anchor = el;
+    const { name, type, icon } = el.dataset;
+    card.innerHTML = '';
+
+    const img = document.createElement('img');
+    img.src = icon;
+    img.alt = '';
+    img.width = 48;
+    img.height = 48;
+
+    const text = document.createElement('div');
+    const title = document.createElement('strong');
+    title.textContent = name;
+    const kind = document.createElement('span');
+    kind.className = 'kind';
+    kind.textContent = TYPE_LABEL[type] || type;
+    const where = document.createElement('span');
+    where.className = 'where';
+    where.textContent = 'Factorio wiki \u2197';
+    text.append(title, kind, where);
+
+    card.append(img, text);
+    card.hidden = false;
+    place();
+  };
+
+  const hide = () => { card.hidden = true; anchor = null; };
+
+  for (const link of links) {
+    link.addEventListener('mouseenter', () => show(link));
+    link.addEventListener('focus', () => show(link));
+    link.addEventListener('mouseleave', hide);
+    link.addEventListener('blur', hide);
+  }
+  addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
+
+  // The card is position:fixed, so it has to follow its anchor when anything
+  // scrolls - the page, or the table sideways within its own overflow box.
+  //
+  // It REPOSITIONS rather than hides. Hiding looked right until keyboard focus
+  // was tried: focusing a link scrolls it into view, that scroll fired the
+  // handler, and the card vanished the instant it appeared. Tabbing through the
+  // table showed nothing at all.
+  const follow = () => {
+    if (!anchor) return;
+    const a = anchor.getBoundingClientRect();
+    const offscreen = a.bottom < 0 || a.top > window.innerHeight
+      || a.right < 0 || a.left > window.innerWidth;
+    if (offscreen) hide(); else place();
+  };
+  addEventListener('scroll', follow, { passive: true, capture: true });
+  addEventListener('resize', follow, { passive: true });
+})();
