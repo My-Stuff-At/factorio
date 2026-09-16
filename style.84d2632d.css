@@ -213,6 +213,15 @@ footer { margin-top:3.5rem; padding-top:1.25rem; border-top:1px solid var(--rule
    a rule every third one; those nth-child(3n+2) selectors survived the change
    and put borders on two arbitrary columns, so they are gone rather than
    adjusted. Every size column now gets the same separator. */
+
+/* Tighter horizontal padding than the site default of .8rem. This table is the
+   widest thing on the site - eight columns, two of them holding a nowrap name -
+   and at the 70rem layout it overflowed its container by 13px, which showed as a
+   scrollbar on a table that very nearly fits. The alternative was shrinking the
+   asteroid sprites, and those are large on purpose: the icon row exists to say
+   which rock each column means, and a 1cap sprite does not say it.
+   Measured: 827px -> 812px against 814px available. */
+.kills th, .kills td { padding-left:.65rem; padding-right:.65rem; }
 /* Two states, both backgrounds rather than recoloured text, per the styleguide
    at the top of this file: reachable now, and past the practical wall. */
 .legend { color:var(--muted); font-size:.85rem; margin:.5rem 0 1rem; }

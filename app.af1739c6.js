@@ -369,13 +369,37 @@ const TYPE_LABEL = {
   // Delegated, not bound per element. The asteroid row is replaced when the
   // type switcher changes, and per-element handlers died with the old markup -
   // the icons stopped responding after one click of the switcher.
+  //
+  // Both handlers reason about the TRIGGER, never about the node the event
+  // landed on, because a trigger is two boxes. The sprite draws larger than its
+  // inline box - that is what --iref-scale does - so the img sticks out 4px
+  // below the span and the span sticks out 2px to its right. A pointer moving
+  // across one icon therefore crosses the img/span boundary while never leaving
+  // the icon, and an earlier version read that crossing as a departure:
+  //
+  //   mouseout  img -> span   scheduleHide, because closest() is the trigger
+  //   mouseover span -> img   trigger === anchor, returned without clearing
+  //
+  // which closed the card 220ms after it opened. It showed up on the last
+  // sprite in a cell, because that is the one whose 2px span sliver you enter
+  // first when approaching from the right - open on the sliver, close on the
+  // step onto the image.
   document.addEventListener('mouseover', e => {
     const trigger = e.target.closest?.('.iref[data-name]');
-    if (!trigger || trigger === anchor) return;
-    show(trigger);
+    if (!trigger) return;
+    // Arriving anywhere in a trigger cancels a pending close, including the same
+    // trigger: re-entering is not a reason to keep closing.
+    clearTimeout(closing);
+    if (trigger !== anchor) show(trigger);
   });
   document.addEventListener('mouseout', e => {
-    if (e.target.closest?.('.iref[data-name]')) scheduleHide();
+    const trigger = e.target.closest?.('.iref[data-name]');
+    if (!trigger) return;
+    // Where the pointer is GOING decides this. Still inside the same trigger,
+    // or into the card, is not leaving.
+    const to = e.relatedTarget;
+    if (to instanceof Node && (trigger.contains(to) || card.contains(to))) return;
+    scheduleHide();
   });
   card.addEventListener('mouseenter', () => clearTimeout(closing));
   card.addEventListener('mouseleave', scheduleHide);
