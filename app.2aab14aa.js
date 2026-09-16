@@ -1,5 +1,5 @@
 import { createModel, cruise, formatRate, rateDigits } from './model.ad2f0250.js';
-import { formatLevel, killCaption } from './combat.ce82f942.js';
+import { formatLevel, killCaption, cellNote } from './combat.69bf4ea3.js';
 
 // Recompute the speed table for any combination of thruster quality, leg phase
 // and fill. The physics lives in model.mjs and is shared with the build and the
@@ -189,7 +189,7 @@ if (combatData) {
   const caption = document.getElementById('kill-caption');
   const pick = { kindIndex: 0, shotIndex: 0 };
 
-  const CELL_CLASS = { free: 'ok-cell', wall: 'hacky', plain: '' };
+  const CELL_CLASS = { free: 'ok-cell', impossible: 'hacky', plain: '' };
 
   const renderKills = () => {
     const kind = C.kinds[pick.kindIndex];
@@ -203,10 +203,14 @@ if (combatData) {
     });
 
     table.querySelectorAll('tbody tr').forEach((tr, r) => {
+      const weapon = C.weapons[r];
+      const family = C.families[weapon.family];
       tr.querySelectorAll('td').forEach((td, c) => {
-        const { text, state } = formatLevel(rows[r][c]);
+        const level = rows[r][c];
+        const { text, state } = formatLevel(level);
         td.textContent = text;
         td.className = CELL_CLASS[state];
+        td.title = cellNote(level, family, weapon.tech_name);
       });
     });
 
