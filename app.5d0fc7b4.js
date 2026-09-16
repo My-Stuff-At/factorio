@@ -248,68 +248,75 @@ if (combatData) {
   renderKills();
 }
 
-// ---------------------------------------------------------------- wiki tooltip
-// A card for the item, entity or technology a link points at: larger icon, the
-// game's full name, what kind of thing it is, and where the link goes.
+// ---------------------------------------------------------------- wiki card
+// A card for the item, entity or technology a link points at: the icon at full
+// size, the game's own name, what kind of thing it is, and a link to the wiki
+// article marked as leaving the site.
 //
 // Hand-rolled rather than pulled in. The content is four static fields; the only
-// hard part is placement, and that is about thirty lines here. A positioning
-// library earns its size when tooltips flip, carry arrows, or anchor to virtual
-// elements, none of which this does.
+// hard part is placement. A positioning library earns its size when tooltips
+// flip, carry arrows or anchor to virtual elements, none of which this does.
 //
 // Everything it shows comes off the anchor's own data attributes, written by
 // wiki.mjs at build time, so the card cannot disagree with the link it describes
 // and there is no second lookup table to keep in step.
 //
-// Progressive enhancement: with no JavaScript the links still work and still say
-// where they go. The card only ever adds.
+// Progressive enhancement: with no JavaScript the links still work. The card
+// only ever adds.
 const TYPE_LABEL = {
   item: 'Item', entity: 'Entity', fluid: 'Fluid', equipment: 'Equipment',
   technology: 'Technology', 'asteroid-chunk': 'Asteroid chunk',
   'space-location': 'Space location', tile: 'Tile', quality: 'Quality',
 };
 
+// Lucide square-arrow-out-up-right (ISC, see site/CREDITS.md), inlined for the
+// same reason as the stepper glyphs: two icons do not justify a webfont.
+const ICON_EXTERNAL =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"'
+  + ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+  + '<path d="M21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6"/>'
+  + '<path d="m21 3-9 9"/><path d="M15 3h6v6"/></svg>';
+
 (() => {
   const links = document.querySelectorAll('a.iref[data-name]');
   if (!links.length) return;
+  const wiki = JSON.parse(document.getElementById('wiki-meta')?.textContent || '{}');
 
   const card = document.createElement('div');
   card.className = 'iref-card';
   card.hidden = true;
-  // Presentational: the anchor it describes is already in the tab order and
-  // carries the same information, so announcing this twice helps nobody.
-  card.setAttribute('aria-hidden', 'true');
   document.body.append(card);
 
   let anchor = null;
+  let closing = null;
 
   const place = () => {
     if (!anchor) return;
     const a = anchor.getBoundingClientRect();
     const c = card.getBoundingClientRect();
-    const margin = 8;
-    // Prefer above; drop below when there is no room. Then clamp horizontally so
-    // a link near either edge does not push the card off screen - the table
-    // scrolls sideways, so edge cases are the normal case here.
-    const above = a.top - c.height - margin;
-    const top = above >= margin ? above : a.bottom + margin;
-    const left = Math.min(
-      Math.max(margin, a.left + a.width / 2 - c.width / 2),
-      window.innerWidth - c.width - margin);
+    const gap = 6, margin = 8;
+    // Below and left-aligned by default, so the card grows down and to the
+    // right from the trigger's bottom-left corner. Above only when there is no
+    // room below; clamped horizontally because the table scrolls sideways and
+    // links near an edge are the normal case, not the exception.
+    const below = a.bottom + gap;
+    const top = below + c.height + margin <= window.innerHeight
+      ? below
+      : Math.max(margin, a.top - c.height - gap);
+    const left = Math.min(Math.max(margin, a.left),
+                          window.innerWidth - c.width - margin);
     card.style.top = `${Math.round(top)}px`;
     card.style.left = `${Math.round(left)}px`;
   };
 
-  const show = el => {
-    anchor = el;
+  const build = el => {
     const { name, type, icon } = el.dataset;
-    card.innerHTML = '';
+    card.replaceChildren();
 
     const img = document.createElement('img');
+    img.className = 'big';
     img.src = icon;
     img.alt = '';
-    img.width = 48;
-    img.height = 48;
 
     const text = document.createElement('div');
     const title = document.createElement('strong');
@@ -317,39 +324,65 @@ const TYPE_LABEL = {
     const kind = document.createElement('span');
     kind.className = 'kind';
     kind.textContent = TYPE_LABEL[type] || type;
-    const where = document.createElement('span');
-    where.className = 'where';
-    where.textContent = 'Factorio wiki \u2197';
-    text.append(title, kind, where);
 
+    // A real link, which is why the card has to be hoverable - see `closing`.
+    const link = document.createElement('a');
+    link.className = 'wiki';
+    link.href = el.href;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.title = 'Open the official Factorio wiki article in a new tab';
+    if (wiki.base && wiki.logo) {
+      const logo = document.createElement('img');
+      logo.src = wiki.base + wiki.logo;
+      logo.alt = 'Factorio wiki';
+      link.append(logo);
+    }
+    link.insertAdjacentHTML('beforeend', ICON_EXTERNAL);
+
+    text.append(title, kind, link);
     card.append(img, text);
+  };
+
+  const show = el => {
+    clearTimeout(closing);
+    anchor = el;
+    build(el);
     card.hidden = false;
     place();
   };
 
-  const hide = () => { card.hidden = true; anchor = null; };
+  // Closing on a delay is what makes the link reachable: the pointer has to
+  // cross the gap between the trigger and the card, and an immediate hide took
+  // the card away mid-journey. Entering the card cancels the close.
+  const scheduleHide = () => {
+    clearTimeout(closing);
+    closing = setTimeout(() => { card.hidden = true; anchor = null; }, 220);
+  };
+  const hideNow = () => { clearTimeout(closing); card.hidden = true; anchor = null; };
 
   for (const link of links) {
     link.addEventListener('mouseenter', () => show(link));
     link.addEventListener('focus', () => show(link));
-    link.addEventListener('mouseleave', hide);
-    link.addEventListener('blur', hide);
+    link.addEventListener('mouseleave', scheduleHide);
+    link.addEventListener('blur', scheduleHide);
   }
-  addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
+  card.addEventListener('mouseenter', () => clearTimeout(closing));
+  card.addEventListener('mouseleave', scheduleHide);
+  card.addEventListener('focusin', () => clearTimeout(closing));
+  card.addEventListener('focusout', scheduleHide);
 
-  // The card is position:fixed, so it has to follow its anchor when anything
-  // scrolls - the page, or the table sideways within its own overflow box.
-  //
-  // It REPOSITIONS rather than hides. Hiding looked right until keyboard focus
-  // was tried: focusing a link scrolls it into view, that scroll fired the
-  // handler, and the card vanished the instant it appeared. Tabbing through the
-  // table showed nothing at all.
+  addEventListener('keydown', e => { if (e.key === 'Escape') hideNow(); });
+
+  // position:fixed, so the card has to follow its anchor when anything scrolls.
+  // It repositions rather than hides: focusing a link scrolls it into view, and
+  // hiding on scroll made the card vanish the instant keyboard focus arrived.
   const follow = () => {
     if (!anchor) return;
     const a = anchor.getBoundingClientRect();
-    const offscreen = a.bottom < 0 || a.top > window.innerHeight
+    const gone = a.bottom < 0 || a.top > window.innerHeight
       || a.right < 0 || a.left > window.innerWidth;
-    if (offscreen) hide(); else place();
+    if (gone) hideNow(); else place();
   };
   addEventListener('scroll', follow, { passive: true, capture: true });
   addEventListener('resize', follow, { passive: true });

@@ -267,21 +267,35 @@ th .iref { font-weight:inherit; }
    the Weapon and Technology headers can span both rows; being a td rather than a
    th is all it takes to read as data, because the header styling targets th. */
 
-/* Wiki reference card. Fixed rather than absolute: the tables sit inside an
-   overflow-x container, and an absolutely positioned child would be clipped by
-   it exactly where the card is most needed - at the edges. */
+/* Wiki reference card.
+
+   position:fixed rather than absolute: the tables sit inside an overflow-x
+   container, and an absolutely positioned child is clipped by it exactly at the
+   edges, which is where a card most needs to escape.
+
+   Pointer events are ON. The card holds a real link, so it has to be reachable;
+   app.js closes it on a delay so the pointer can cross the gap. */
 .iref-card {
-  position:fixed; z-index:50; display:flex; gap:.7rem; align-items:center;
-  max-width:18rem; padding:.6rem .75rem;
+  position:fixed; z-index:50; display:flex; gap:.7rem; align-items:flex-start;
+  max-width:20rem; padding:.65rem .8rem;
   background:var(--card); color:var(--fg);
   border:1px solid rgb(var(--cell) / var(--tint-rule)); border-radius:10px;
-  box-shadow:0 6px 20px rgb(0 0 0 / .35);
-  font-size:.9rem; line-height:1.35; pointer-events:none;
+  box-shadow:0 8px 24px rgb(0 0 0 / .4);
+  font-size:.9rem; line-height:1.35;
 }
 .iref-card[hidden] { display:none; }
-.iref-card img { width:48px; height:48px; flex:0 0 auto; }
-.iref-card div { display:flex; flex-direction:column; min-width:0; }
+/* The source is the wiki's original file, 64px for items and 256px for
+   technologies, so it is always scaled DOWN to this box and never blurry. */
+.iref-card img.big { width:48px; height:48px; flex:0 0 auto; }
+.iref-card > div { display:flex; flex-direction:column; min-width:0; gap:.1rem; }
 .iref-card strong { font-weight:600; }
-.iref-card .kind { color:var(--muted); font-size:.8rem; text-transform:uppercase;
-  letter-spacing:.05em; }
-.iref-card .where { color:var(--link); font-size:.8rem; margin-top:.15rem; }
+.iref-card .kind { color:var(--muted); font-size:.75rem; text-transform:uppercase;
+  letter-spacing:.06em; }
+/* The wiki's own logo plus an outbound arrow, in place of the words. */
+.iref-card a.wiki { display:inline-flex; align-items:center; gap:.3rem;
+  margin-top:.25rem; padding:.15rem .3rem; margin-left:-.3rem;
+  border-radius:5px; width:max-content; }
+.iref-card a.wiki img { width:1.1rem; height:1.1rem; }
+.iref-card a.wiki svg { width:.85rem; height:.85rem; color:var(--link); }
+.iref-card a.wiki:hover { background:rgb(var(--cell) / var(--tint-flag)); }
+.iref-card a.wiki:focus-visible { outline:2px solid rgb(var(--cell)); outline-offset:1px; }
