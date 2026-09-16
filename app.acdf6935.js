@@ -189,7 +189,7 @@ if (combatData) {
   const caption = document.getElementById('kill-caption');
   const pick = { kindIndex: 0, shotIndex: 0 };
 
-  const CELL_CLASS = { free: 'ok-cell', impossible: 'hacky', plain: '' };
+  const CELL_CLASS = { free: '', impossible: 'hacky', plain: '' };
 
   const renderKills = () => {
     const kind = C.kinds[pick.kindIndex];

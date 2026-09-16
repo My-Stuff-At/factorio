@@ -215,12 +215,7 @@ footer { margin-top:3.5rem; padding-top:1.25rem; border-top:1px solid var(--rule
    adjusted. Every size column now gets the same separator. */
 /* Two states, both backgrounds rather than recoloured text, per the styleguide
    at the top of this file: reachable now, and past the practical wall. */
-.grid tbody td.ok-cell { background:rgb(var(--cell) / var(--tint-flag)); font-weight:600; }
 .legend { color:var(--muted); font-size:.85rem; margin:.5rem 0 1rem; }
-.legend .sw { display:inline-block; width:.7rem; height:.7rem; border-radius:3px;
-  vertical-align:middle; margin-right:.3rem; border:1px solid var(--rule); }
-.legend .sw.ok { background:rgb(var(--cell) / var(--tint-flag)); }
-.legend .sw.hack { background:rgb(var(--hack) / var(--tint-flag)); }
 
 /* Wiki item reference: icon, optionally a label, linking to wiki.factorio.com.
    The icon is sized in `cap` units - the font's CAP HEIGHT, not its line height
