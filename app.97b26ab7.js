@@ -1,5 +1,5 @@
 import { createModel, cruise, formatRate, rateDigits } from './model.ad2f0250.js';
-import { levelFor, formatLevel, killCaption } from './combat.07d06a27.js';
+import { formatLevel, killCaption } from './combat.07d06a27.js';
 
 // Recompute the speed table for any combination of thruster quality, leg phase
 // and fill. The physics lives in model.mjs and is shared with the build and the
@@ -176,41 +176,40 @@ for (const a of document.querySelectorAll('a.anchor')) {
 }
 
 // ---------------------------------------------------------------- combat table
-// Two switchers, asteroid type and shots to kill, so six combinations. One is
-// pre-rendered and the rest are computed here from the same module the build
-// used - including formatLevel, so a threshold cannot render one way in the
-// fallback table and another way after a tab click.
+// Two switchers, asteroid type and shots to kill, so six combinations. Every
+// threshold was solved at build time and is embedded as a lookup cube, because
+// solving them here cost 260 ms per tab click - the solver walks research levels
+// one at a time, and a cell no level satisfies walks all 20,000 of them.
+// Formatting still comes from the shared module, so a threshold cannot render
+// one way in the pre-rendered table and another way after a click.
 const combatData = document.getElementById('combat');
 if (combatData) {
   const C = JSON.parse(combatData.textContent);
   const table = document.getElementById('kill-grid');
   const caption = document.getElementById('kill-caption');
-  const pick = { kind: C.kinds[0], shots: C.shotCounts[0] };
+  const pick = { kindIndex: 0, shotIndex: 0 };
 
   const CELL_CLASS = { free: 'ok-cell', wall: 'hacky', plain: '' };
 
   const renderKills = () => {
+    const kind = C.kinds[pick.kindIndex];
+    const rows = C.levels[pick.kindIndex][pick.shotIndex];
+
     // Header carries the hit points, which double for promethium.
     table.querySelectorAll('thead th[data-size]').forEach(th => {
-      const a = C.asteroids.find(x => x.size === th.dataset.size);
-      th.innerHTML = `${a.size} &middot; ${num(a.hp * pick.kind.mul)} hp`;
+      const a = C.sizes.find(x => x.size === th.dataset.size);
+      th.innerHTML = `${a.size} &middot; ${num(a.hp * kind.mul)} hp`;
     });
 
     table.querySelectorAll('tbody tr').forEach((tr, r) => {
-      const weapon = C.weapons[r];
-      const family = C.families[weapon.family];
       tr.querySelectorAll('td').forEach((td, c) => {
-        const level = levelFor({
-          weapon, family, asteroid: C.asteroids[c],
-          shots: pick.shots, hpMultiplier: pick.kind.mul,
-        });
-        const { text, state } = formatLevel(level);
+        const { text, state } = formatLevel(rows[r][c]);
         td.textContent = text;
         td.className = CELL_CLASS[state];
       });
     });
 
-    caption.innerHTML = killCaption(pick);
+    caption.innerHTML = killCaption({ kind, shots: C.shotCounts[pick.shotIndex] });
   };
 
   /** Wire one strip; `apply` maps the chosen index onto `pick`. */
@@ -239,7 +238,7 @@ if (combatData) {
     });
   };
 
-  wireStrip('kind-tabs', i => { pick.kind = C.kinds[i]; });
-  wireStrip('shot-tabs', i => { pick.shots = C.shotCounts[i]; });
+  wireStrip('kind-tabs', i => { pick.kindIndex = i; });
+  wireStrip('shot-tabs', i => { pick.shotIndex = i; });
   renderKills();
 }
