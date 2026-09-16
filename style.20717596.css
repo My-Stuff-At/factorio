@@ -82,7 +82,11 @@ h1.flash::before, h2.flash::before {
 table { border-collapse:collapse; width:100%; font-variant-numeric:tabular-nums; }
 caption { text-align:left; padding:.85rem 1rem .1rem; color:var(--muted); font-size:.875rem; }
 th,td { padding:.5rem .8rem; text-align:right; border-bottom:1px solid var(--rule); white-space:nowrap; }
-thead th { font-weight:600; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); }
+/* Column headers are left-aligned even though the data under them is right-
+   aligned. Right-aligning a header pushes the label to the far edge of a wide
+   column, where it stops reading as the heading for that column. */
+thead th { font-weight:600; font-size:.78rem; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--muted); text-align:left; }
 tbody tr:last-child th, tbody tr:last-child td { border-bottom:0; }
 th[scope="row"] { text-align:left; font-weight:600; }
 /* --t defaults to 0 so a cell that carries no heat value is simply
@@ -257,9 +261,6 @@ th .iref { font-weight:inherit; }
 .kills tbody th.tech { text-align:left; vertical-align:middle;
   border-left:1px solid var(--rule); }
 
-/* The hit-point row is data, not a header: it sits inside thead so the Weapon
-   and Technology headers can span both rows, but it reads like every other body
-   cell. Muted only slightly, because it is context for the column rather than an
-   answer to the question the table is asking. */
-.kills thead td.hp { font-weight:400; color:var(--muted); text-transform:none;
-  letter-spacing:normal; font-size:.85rem; }
+/* The hit-point row carries no styling of its own. It sits inside thead only so
+   the Weapon and Technology headers can span both rows; being a td rather than a
+   th is all it takes to read as data, because the header styling targets th. */
