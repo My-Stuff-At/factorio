@@ -274,10 +274,15 @@ th .iref { font-weight:inherit; }
    edges, which is where a card most needs to escape.
 
    Pointer events are ON. The card holds a real link, so it has to be reachable;
-   app.js closes it on a delay so the pointer can cross the gap. */
+   app.js closes it on a delay so the pointer can cross the gap.
+
+   PADDING IS UNIFORM, deliberately. The logo has to read as both vertically
+   centred against the name and tucked into the corner, and those two only agree
+   when the top and right insets are the same number. Uneven padding makes one
+   or the other look wrong, and no amount of nudging the logo fixes it. */
 .iref-card {
   position:fixed; z-index:50; display:flex; gap:.7rem; align-items:flex-start;
-  max-width:20rem; padding:.65rem .8rem;
+  max-width:20rem; padding:.7rem;
   background:var(--card); color:var(--fg);
   border:1px solid rgb(var(--cell) / var(--tint-rule)); border-radius:10px;
   box-shadow:0 8px 24px rgb(0 0 0 / .4);
@@ -288,14 +293,21 @@ th .iref { font-weight:inherit; }
    technologies, so it is always scaled DOWN to this box and never blurry. */
 .iref-card img.big { width:48px; height:48px; flex:0 0 auto; }
 .iref-card > div { display:flex; flex-direction:column; min-width:0; gap:.1rem; }
-.iref-card strong { font-weight:600; }
+
+/* name | spacer | logo */
+.iref-card .head { display:flex; align-items:center; gap:.8rem; }
+.iref-card .head strong { font-weight:600; }
+.iref-card a.wiki { margin-left:auto; display:block; flex:0 0 auto;
+  opacity:.8; transition:opacity .12s; }
+.iref-card a.wiki:hover { opacity:1; }
+.iref-card a.wiki:focus-visible { outline:2px solid rgb(var(--cell)); outline-offset:2px;
+  border-radius:3px; opacity:1; }
+/* At least as tall as the name's line box (.9rem x 1.35 = 1.215rem), so the
+   header's height is the logo's and its top edge lands exactly on the card's
+   padding. That is what makes the corner inset equal to the right inset while
+   `align-items:center` still centres it against the name. No margins here: any
+   would break the equality above. */
+.iref-card a.wiki img { display:block; width:1.25rem; height:1.25rem; }
+
 .iref-card .kind { color:var(--muted); font-size:.75rem; text-transform:uppercase;
   letter-spacing:.06em; }
-/* The wiki's own logo plus an outbound arrow, in place of the words. */
-.iref-card a.wiki { display:inline-flex; align-items:center; gap:.3rem;
-  margin-top:.25rem; padding:.15rem .3rem; margin-left:-.3rem;
-  border-radius:5px; width:max-content; }
-.iref-card a.wiki img { width:1.1rem; height:1.1rem; }
-.iref-card a.wiki svg { width:.85rem; height:.85rem; color:var(--link); }
-.iref-card a.wiki:hover { background:rgb(var(--cell) / var(--tint-flag)); }
-.iref-card a.wiki:focus-visible { outline:2px solid rgb(var(--cell)); outline-offset:1px; }

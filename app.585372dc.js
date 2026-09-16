@@ -269,14 +269,6 @@ const TYPE_LABEL = {
   'space-location': 'Space location', tile: 'Tile', quality: 'Quality',
 };
 
-// Lucide square-arrow-out-up-right (ISC, see site/CREDITS.md), inlined for the
-// same reason as the stepper glyphs: two icons do not justify a webfont.
-const ICON_EXTERNAL =
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"'
-  + ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-  + '<path d="M21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6"/>'
-  + '<path d="m21 3-9 9"/><path d="M15 3h6v6"/></svg>';
-
 (() => {
   const links = document.querySelectorAll('a.iref[data-name]');
   if (!links.length) return;
@@ -319,28 +311,34 @@ const ICON_EXTERNAL =
     img.alt = '';
 
     const text = document.createElement('div');
+
+    // Header row: name, then the logo pushed to the far corner by a spacer.
+    const head = document.createElement('div');
+    head.className = 'head';
     const title = document.createElement('strong');
     title.textContent = name;
-    const kind = document.createElement('span');
-    kind.className = 'kind';
-    kind.textContent = TYPE_LABEL[type] || type;
+    head.append(title);
 
     // A real link, which is why the card has to be hoverable - see `closing`.
-    const link = document.createElement('a');
-    link.className = 'wiki';
-    link.href = el.href;
-    link.target = '_blank';
-    link.rel = 'noopener';
-    link.title = 'Open the official Factorio wiki article in a new tab';
     if (wiki.base && wiki.logo) {
+      const link = document.createElement('a');
+      link.className = 'wiki';
+      link.href = el.href;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.title = 'Open the official Factorio wiki article in a new tab';
       const logo = document.createElement('img');
       logo.src = wiki.base + wiki.logo;
       logo.alt = 'Factorio wiki';
       link.append(logo);
+      head.append(link);
     }
-    link.insertAdjacentHTML('beforeend', ICON_EXTERNAL);
 
-    text.append(title, kind, link);
+    const kind = document.createElement('span');
+    kind.className = 'kind';
+    kind.textContent = TYPE_LABEL[type] || type;
+
+    text.append(head, kind);
     card.append(img, text);
   };
 
