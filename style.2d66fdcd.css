@@ -239,7 +239,18 @@ footer { margin-top:3.5rem; padding-top:1.25rem; border-top:1px solid var(--rule
    The overflow paints into the line's leading. At the body's 1.6 line-height
    that is about 3.5px a side, so a scale much past 2 would start to touch the
    line above in wrapped prose. In a single-line table cell there is no limit. */
-.iref { text-decoration:none; color:inherit; white-space:nowrap; }
+/* The trigger is a span, not a link: it opens the reference card, and the card
+   holds the only link. A dotted underline is the conventional mark for "there is
+   more here on hover", which is what this does - a solid one would promise
+   navigation it no longer performs. */
+.iref { color:inherit; white-space:nowrap; cursor:help;
+  text-decoration:underline dotted;
+  text-decoration-color:color-mix(in srgb,var(--fg) 45%,transparent);
+  text-underline-offset:.2em; }
+.iref:hover, .iref:focus-visible {
+  text-decoration-color:rgb(var(--cell)); }
+.iref:focus-visible { outline:2px solid rgb(var(--cell)); outline-offset:2px;
+  border-radius:3px; }
 .iref img {
   --iref-scale:1.75;
   /* em fallback first, for Safari before 16.4; the cap pair overrides it */
@@ -249,8 +260,6 @@ footer { margin-top:3.5rem; padding-top:1.25rem; border-top:1px solid var(--rule
   margin-block:calc((1cap - 1cap * var(--iref-scale)) / 2);
   vertical-align:baseline; margin-right:.3em;
 }
-.iref:hover { text-decoration:underline; text-decoration-color:rgb(var(--cell)); }
-.iref:focus-visible { outline:2px solid rgb(var(--cell)); outline-offset:2px; border-radius:3px; }
 /* The row header sets weight and alignment; the link inherits both. */
 th .iref { font-weight:inherit; }
 

@@ -270,8 +270,8 @@ const TYPE_LABEL = {
 };
 
 (() => {
-  const links = document.querySelectorAll('a.iref[data-name]');
-  if (!links.length) return;
+  const triggers = document.querySelectorAll('.iref[data-name]');
+  if (!triggers.length) return;
   const wiki = JSON.parse(document.getElementById('wiki-meta')?.textContent || '{}');
 
   const card = document.createElement('div');
@@ -323,7 +323,7 @@ const TYPE_LABEL = {
     if (wiki.base && wiki.logo) {
       const link = document.createElement('a');
       link.className = 'wiki';
-      link.href = el.href;
+      link.href = el.dataset.page;
       link.target = '_blank';
       link.rel = 'noopener';
       link.title = 'Open the official Factorio wiki article in a new tab';
@@ -359,18 +359,38 @@ const TYPE_LABEL = {
   };
   const hideNow = () => { clearTimeout(closing); card.hidden = true; anchor = null; };
 
-  for (const link of links) {
-    link.addEventListener('mouseenter', () => show(link));
-    link.addEventListener('focus', () => show(link));
-    link.addEventListener('mouseleave', scheduleHide);
-    link.addEventListener('blur', scheduleHide);
+  for (const trigger of triggers) {
+    trigger.addEventListener('mouseenter', () => show(trigger));
+    trigger.addEventListener('focus', () => show(trigger));
+    trigger.addEventListener('mouseleave', scheduleHide);
+    trigger.addEventListener('blur', scheduleHide);
+
+    // The trigger is not a link any more, so Enter has nothing of its own to do
+    // and Tab would skip past the card - it lives at the end of <body>, nowhere
+    // near the trigger in document order. Both therefore hand focus to the
+    // card's link, which keeps the wiki page reachable without a mouse.
+    trigger.addEventListener('keydown', e => {
+      const wants = e.key === 'Enter' || e.key === ' ' || (e.key === 'Tab' && !e.shiftKey);
+      if (!wants) return;
+      show(trigger);
+      const link = card.querySelector('a.wiki');
+      if (!link) return;
+      e.preventDefault();
+      clearTimeout(closing);
+      link.focus();
+    });
   }
   card.addEventListener('mouseenter', () => clearTimeout(closing));
   card.addEventListener('mouseleave', scheduleHide);
   card.addEventListener('focusin', () => clearTimeout(closing));
   card.addEventListener('focusout', scheduleHide);
 
-  addEventListener('keydown', e => { if (e.key === 'Escape') hideNow(); });
+  addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const back = anchor;
+    hideNow();
+    back?.focus();
+  });
 
   // position:fixed, so the card has to follow its anchor when anything scrolls.
   // It repositions rather than hides: focusing a link scrolls it into view, and
