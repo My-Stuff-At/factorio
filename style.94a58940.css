@@ -246,3 +246,10 @@ footer { margin-top:3.5rem; padding-top:1.25rem; border-top:1px solid var(--rule
 .iref:focus-visible { outline:2px solid rgb(var(--cell)); outline-offset:2px; border-radius:3px; }
 /* The row header sets weight and alignment; the link inherits both. */
 th .iref { font-weight:inherit; }
+
+/* Technology column: one rowspanned cell per weapon family, so it reads as a
+   grouping rather than a repeated value. Left-aligned like the weapon column,
+   and vertically centred across the rows it spans. */
+.kills th.tech { text-align:left; font-weight:500; vertical-align:middle;
+  color:var(--muted); border-left:1px solid var(--rule); }
+.kills th.tech .iref { color:inherit; }
